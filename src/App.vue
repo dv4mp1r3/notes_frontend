@@ -59,9 +59,8 @@ import {
   faListUl,
   faFileAlt,
   faListAlt,
-  faBullseye,
 } from '@fortawesome/free-solid-svg-icons'
-import { height } from '@fortawesome/free-solid-svg-icons/fa0'
+import ApiClient from './models/apiClient'
 
 library.add(
   faDownload,
@@ -137,11 +136,13 @@ class App extends Vue {
   }
 
   async onBtnLoginClick() {
-    const authenticated = await this.auth.authenticate(this.login as string, this.password as string);
+    const client = new ApiClient();
+    const authenticated = await client.login(this.login as string, this.password as string);
     if (!authenticated) {
       this.loginError = true;
     } else {
-      axios.get("http://localhost:8080/resources").then(response => console.log(response.data));
+      const resources = await client.resources();
+      console.log(resources);
     }
 
     console.log('onBtnLoginClick');

@@ -1,10 +1,8 @@
-import axios from "axios";
+import ApiClient from "./apiClient";
 
 export default class Auth {
     async authenticate(username: string, password: string) : Promise<boolean> {
-        const {data, status} = await axios.post('http://localhost:8080/login', { username, password });
-        console.log('authenticate', data, status);
-        return status === 200;
+        return await (new ApiClient()).login(username, password);
     }
 
     isAuthorized(): boolean {

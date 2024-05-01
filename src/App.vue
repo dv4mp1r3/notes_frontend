@@ -1,48 +1,31 @@
 <template>
   <div v-if="isAuthorized">
-    <sidebar-menu
-  v-model:collapsed="collapsed"
-  :menu="menu"
-  :link-component-name="'sidebar-menu-link'"
-  :show-one-child="true"
-  @update:collapsed="onToggleCollapse"
-  @item-click="onItemClick"
-  :style="[{'max-height': `${sidebarMaxHeight}px`}]"
-/>
-<div
-  v-if="isOnMobile && !collapsed"
-  class="sidebar-overlay"
-  @click="collapsed = true"
-/>
-<div id="demo" :class="[{ collapsed: collapsed }, { onmobile: isOnMobile }]">
-  <div class="demo">
-    <div class="container">
-      <button @click="onBtnSaveClick" id="btnSave">Сохранить</button>
-      <editor :data="'kjdfgj'"/>
+    <sidebar-menu v-model:collapsed="collapsed" :menu="menu" :link-component-name="'sidebar-menu-link'"
+      :show-one-child="true" @update:collapsed="onToggleCollapse" @item-click="onItemClick"
+      :style="[{ 'max-height': `${sidebarMaxHeight}px` }]" />
+    <div v-if="isOnMobile && !collapsed" class="sidebar-overlay" @click="collapsed = true" />
+    <div id="demo" :class="[{ collapsed: collapsed }, { onmobile: isOnMobile }]">
+      <div class="demo">
+        <div class="container">
+          <button @click="onBtnSaveClick" id="btnSave">Сохранить</button>
+          <editor />
+        </div>
+      </div>
     </div>
   </div>
-</div>
-  </div>
-  <div v-if="!isAuthorized" class="login-form">
-    <input class="login-form-element" type="text" placeholder="login" v-model="login"/>
-    <input class="login-form-element" type="text" placeholder="password" v-model="password"/>
-    <button class="login-form-element" @click="onBtnLoginClick">Login</button>
-    <p class="login-form-element" v-if="loginError">Login error</p>
-  </div>
-  
+  <login-form v-if="!isAuthorized" />
 
-  
 </template>
 
 <script lang="ts">
 import SidebarMenuLink from './components/SidebarMenuLink.vue'
+import LoginForm from './components/LoginForm.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import Editor from './components/Editor.vue'
-import {h} from 'vue'
+import { h } from 'vue'
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import { Component, Vue, toNative } from 'vue-facing-decorator'
 import { library } from '@fortawesome/fontawesome-svg-core'
-import Auth from './models/auth'
 import axios from 'axios'
 
 axios.defaults.withCredentials = true;
@@ -60,7 +43,6 @@ import {
   faFileAlt,
   faListAlt,
 } from '@fortawesome/free-solid-svg-icons'
-import ApiClient from './models/apiClient'
 
 library.add(
   faDownload,
@@ -76,41 +58,25 @@ library.add(
   faListAlt
 )
 
-@Component({components: {SidebarMenuLink, Editor}})
+type MenuElement = {
+  data: string,
+  title: string,
+  icon: string,
+  idx: number
+};
+
+@Component({ components: { SidebarMenuLink, Editor, LoginForm } })
 class App extends Vue {
   collapsed = false;
   isOnMobile = false;
 
-  auth = new Auth();
-
-  login: string|undefined;
-  password: string|undefined;
-  loginError = false;
-
-  menu = [
-    {
-      hiddenOnCollapse: true,
-    },
-    {
-      title: 'Installation',
-      customId: '34',
-      icon: faIcon({ icon: 'fa-solid fa-download' }),
-      data: 'test1'
-    },
-    {
-      title: 'Basic Usage',
-      customId: '12',
-      data: 'test2'
-    },
-  ];
-
   onToggleCollapse(collapsed: boolean) {
     collapsed = collapsed;
-      console.log('onToggleCollapse', collapsed)
+    console.log('onToggleCollapse', collapsed)
   }
 
-  onItemClick(event: any, item: any) {
-      console.log('onItemClick', event, item)
+  onItemClick(event: PointerEvent, item: MenuElement) {
+    this.$store.dispatch('setActiveResource', item.idx);
   }
 
   onBtnSaveClick() {
@@ -127,26 +93,32 @@ class App extends Vue {
     }
   }
 
-  get isAuthorized() : boolean {
-    return this.auth.isAuthorized();
+  get menu(): Array<Object> {
+    const resources = this.$store.getters.getResources;
+    const result = [{
+      hiddenOnCollapse: true,
+    }];
+    console.log(resources);
+    if (resources === undefined) {
+      return result;
+    }
+    return result.concat(resources.map((el: Resource, idx: number) => <MenuElement><unknown>{
+      data: el.data,
+      title: el.name,
+      icon: faIcon({ icon: 'fa-solid fa-download' }),
+      idx: idx
+    }));
+  }
+
+  get isAuthorized(): boolean {
+    return this.$store.getters.isLoggedIn;
   }
 
   get sidebarMaxHeight(): number {
     return window.innerHeight;
   }
 
-  async onBtnLoginClick() {
-    const client = new ApiClient();
-    const authenticated = await client.login(this.login as string, this.password as string);
-    if (!authenticated) {
-      this.loginError = true;
-    } else {
-      const resources = await client.resources();
-      console.log(resources);
-    }
 
-    console.log('onBtnLoginClick');
-  }
 }
 
 const faIcon = (props: any) => {
@@ -155,10 +127,8 @@ const faIcon = (props: any) => {
   }
 }
 
-export default toNative(App)
+export default toNative(App);
 </script>
-
-
 
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600');
@@ -188,21 +158,13 @@ body {
   padding-left: 290px;
   transition: 0.3s ease;
 }
+
 #demo.collapsed {
   padding-left: 65px;
 }
+
 #demo.onmobile {
   padding-left: 65px;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  margin: 0 auto;
-}
-
-.login-form-element {
-  margin-top: 8px;
 }
 
 .sidebar-overlay {
@@ -224,5 +186,4 @@ body {
 .container {
   max-width: 900px;
 }
-
 </style>

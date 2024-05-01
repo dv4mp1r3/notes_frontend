@@ -11,10 +11,11 @@ import { Component, Vue, toNative, Prop } from 'vue-facing-decorator'
 class Editor extends Vue {
 
     @Prop
-    data: string = '';
-
-    @Prop
     minHeight: number = 640;
+
+    get data() : string {
+        return this.$store.getters.getActiveResourceData;
+    }
 
     
 }

@@ -27,21 +27,10 @@ const store = createStore({
             state.resources[idx].name = `Resource №${idx}`;
             this.commit('setActiveResource', idx);
         },
-        async setResource(state: State, resource: Resource) {
-            
-            const idx = state.resources.findIndex(el => el.id === resource.id);
-            state.resources[idx] = resource;
-
-            //todo: add new resource on the backend
+        async saveCurrentResource(state: State, resource: Resource) {           
             const client = new ApiClient();
-            await client.resource(resource);
-        },
-        async updateResource(state: State, resource: Resource) {
-            //todo: update resource on the backend
-            const client = new ApiClient();
-            await client.resource(resource);
             const idx = state.resources.findIndex(el => el.id === resource.id);
-            state.resources[idx] = resource;
+            state.resources[idx] = await client.resource(resource);
         },
         setResources(state: State, resources: Array<Resource>) {
             state.resources = resources;
@@ -79,13 +68,9 @@ const store = createStore({
                 return;
             }
         },
-        saveResource({commit}, resource: Resource) {
-            console.log('saveResource', resource);
-            if (resource.id) {
-                commit('updateResource', resource);
-            } else {
-                commit('setResource', resource);
-            }
+        saveCurrentResource({commit}, resource: Resource) {
+            console.log('saveCurrentResource', resource);
+            commit('saveCurrentResource', resource);
         },
         setCurrentResourceData({commit}, data: string) {
             commit('setCurrentResourceData', data);

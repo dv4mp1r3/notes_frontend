@@ -24,20 +24,17 @@ export default class ApiClient {
         return data;
     }
 
-    public async resource(res: Resource) : Promise<boolean> {
-        const endpoint = ApiClient.getMethod('resource');
-        if (res.id !== 0) {
-            const {data, status} = await axios.put(`${endpoint}/${res.id}`, res);
-            console.log('resource put', data, status);
-            return status === 200;
-        }
-
-        const {data, status} = await axios.post(endpoint, res);
-        console.log('resource post (new)', data, status);
-        return status === 200;
+    public async resource(res: Resource) : Promise<Resource> {
+        const endpoint = ApiClient.getMethod('resource', res.id);
+        const {data, status} = await axios.post(
+            endpoint, 
+            res
+        );
+        console.log(endpoint, data, status);
+        return data;
     }
 
-    public static getMethod(name: string) : string {
-        return `${host}/${name}`;
+    public static getMethod(name: string, id: number = 0) : string {
+        return id !== 0 ? `${host}/${name}/${id}` : `${host}/${name}`;
     }
 }

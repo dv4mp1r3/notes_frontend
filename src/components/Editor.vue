@@ -37,7 +37,7 @@ class Editor extends Vue {
     }
 
     onBtnSaveClick() {
-        this.$store.dispatch('saveResource', this.$store.getters.getActiveResource);  
+        this.$store.dispatch('saveCurrentResource', this.$store.getters.getActiveResource);  
     }
     
 }

@@ -17,13 +17,14 @@ const store = createStore({
         setUser(state: State, user: User) {
             state.user = user;
         },
-        addResource(state: State) {
+        addResource(state: State) {            
             const res: Resource = {
                 id: 0,
                 name: '',
                 data: '',
             };
             const idx = state.resources.push(res) - 1;
+            state.resources[idx].name = `Resource №${idx}`;
             this.commit('setActiveResource', idx);
         },
         async setResource(state: State, resource: Resource) {

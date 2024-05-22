@@ -84,9 +84,6 @@ const store = createStore({
             return state.user;
         },
         getResources(state: State): Array<Resource> {
-            if (state.resources === null) {
-                return [];
-            }
             return state.resources;
         },
         isLoggedIn(state: State): boolean {
@@ -96,19 +93,19 @@ const store = createStore({
             return state.activeResourceIndex;
         },
         getActiveResourceData(state: State): string {
-            if (state.resources === null || state.activeResourceIndex === -1) {
+            if (state.activeResourceIndex === -1) {
                 return '';
             }
             return state.resources[state.activeResourceIndex].data;
         },
         getActiveResourceName(state: State): string {
-            if (state.resources === null || state.activeResourceIndex === -1) {
+            if (state.activeResourceIndex === -1) {
                 return '';
             }
             return state.resources[state.activeResourceIndex].name;
         },
         getActiveResource(state: State): Resource|undefined {
-            if (state.resources === null || state.activeResourceIndex === -1) {
+            if (state.activeResourceIndex === -1) {
                 return undefined;
             }
             return state.resources[state.activeResourceIndex];

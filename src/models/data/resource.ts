@@ -1,5 +1,5 @@
 type Resource = {
-    id: string|undefined;
+    id: number;
     name: string;
     data: string;
 }

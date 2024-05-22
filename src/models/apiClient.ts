@@ -26,14 +26,14 @@ export default class ApiClient {
 
     public async resource(res: Resource) : Promise<boolean> {
         const endpoint = ApiClient.getMethod('resource');
-        if (res.id !== undefined) {
-            const {data, status} = await axios.put(endpoint, res);
+        if (res.id !== 0) {
+            const {data, status} = await axios.put(`${endpoint}/${res.id}`, res);
             console.log('resource put', data, status);
             return status === 200;
         }
 
         const {data, status} = await axios.post(endpoint, res);
-        console.log('resource post', data, status);
+        console.log('resource post (new)', data, status);
         return status === 200;
     }
 

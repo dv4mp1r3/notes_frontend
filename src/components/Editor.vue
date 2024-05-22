@@ -1,6 +1,9 @@
 <template>
     <div class="editor">
-        <textarea>{{ data }}</textarea>
+        <div>
+            <button @click="onBtnSaveClick" id="btnSave">Сохранить</button>
+        </div>
+        <textarea v-model="data"></textarea>
     </div>
 </template>
 
@@ -17,6 +20,13 @@ class Editor extends Vue {
         return this.$store.getters.getActiveResourceData;
     }
 
+    set data(s: string) {
+        this.$store.dispatch('setCurrentResourceData', s);
+    }
+
+    onBtnSaveClick() {
+        this.$store.dispatch('saveResource', this.$store.getters.getActiveResource);  
+    }
     
 }
 
@@ -26,5 +36,7 @@ export default toNative(Editor)
 .editor {
     height: 100%;
     width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 </style>

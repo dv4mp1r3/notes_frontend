@@ -7,7 +7,6 @@
     <div id="demo" :class="[{ collapsed: collapsed }, { onmobile: isOnMobile }]">
       <div class="demo">
         <div class="container">
-          <button @click="onBtnSaveClick" id="btnSave">Сохранить</button>
           <editor />
         </div>
       </div>
@@ -76,11 +75,8 @@ class App extends Vue {
   }
 
   onItemClick(event: PointerEvent, item: MenuElement) {
+    
     this.$store.dispatch('setActiveResource', item.idx);
-  }
-
-  onBtnSaveClick() {
-    console.log('onBtnSaveClick');
   }
 
   onResize() {
@@ -95,19 +91,24 @@ class App extends Vue {
 
   get menu(): Array<Object> {
     const resources = this.$store.getters.getResources;
-    const result = [{
-      hiddenOnCollapse: true,
-    }];
-    console.log(resources);
+    const result = [
+      {
+        hiddenOnCollapse: true,
+      },
+      {data: null, title: 'add_new', icon: 'fa-solid fa-add', idx: -1}
+    ];
+
     if (resources === undefined) {
       return result;
     }
-    return result.concat(resources.map((el: Resource, idx: number) => <MenuElement><unknown>{
+    const tmp = result.concat(resources.map((el: Resource, idx: number) => <MenuElement><unknown>{
       data: el.data,
       title: el.name,
       icon: faIcon({ icon: 'fa-solid fa-download' }),
       idx: idx
     }));
+
+    return tmp;
   }
 
   get isAuthorized(): boolean {

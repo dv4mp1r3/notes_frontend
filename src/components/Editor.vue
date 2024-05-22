@@ -3,6 +3,10 @@
         <div>
             <button @click="onBtnSaveClick" id="btnSave">Сохранить</button>
         </div>
+        <div>
+            <label>Name:</label>
+            <input type="text" v-model="name"/>
+        </div>
         <textarea v-model="data"></textarea>
     </div>
 </template>
@@ -22,6 +26,14 @@ class Editor extends Vue {
 
     set data(s: string) {
         this.$store.dispatch('setCurrentResourceData', s);
+    }
+
+    get name(): string {
+        return this.$store.getters.getActiveResourceName;
+    }
+
+    set name(n: string) {
+        this.$store.dispatch('setCurrentResourceName', n);
     }
 
     onBtnSaveClick() {

@@ -56,6 +56,9 @@ const store = createStore({
         },
         setCurrentResourceData(state: State, data: string) {
             state.resources[state.activeResourceIndex].data = data;
+        },
+        setCurrentResourceName(state: State, name: string) {
+            state.resources[state.activeResourceIndex].name = name;
         }
     },
     actions: {
@@ -86,6 +89,9 @@ const store = createStore({
         },
         setCurrentResourceData({commit}, data: string) {
             commit('setCurrentResourceData', data);
+        },
+        setCurrentResourceName({commit}, name: string) {
+            commit('setCurrentResourceName', name);
         }
     },
     getters: {
@@ -109,6 +115,12 @@ const store = createStore({
                 return '';
             }
             return state.resources[state.activeResourceIndex].data;
+        },
+        getActiveResourceName(state: State): string {
+            if (state.resources === null || state.activeResourceIndex === -1) {
+                return '';
+            }
+            return state.resources[state.activeResourceIndex].name;
         },
         getActiveResource(state: State): Resource|undefined {
             if (state.resources === null || state.activeResourceIndex === -1) {

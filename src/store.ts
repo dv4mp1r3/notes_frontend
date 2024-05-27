@@ -27,10 +27,9 @@ const store = createStore({
             state.resources[idx].name = `Resource №${idx}`;
             this.commit('setActiveResource', idx);
         },
-        async saveCurrentResource(state: State, resource: Resource) {           
-            const client = new ApiClient();
+        saveCurrentResource(state: State, resource: Resource) {           
             const idx = state.resources.findIndex(el => el.id === resource.id);
-            state.resources[idx] = await client.resource(resource);
+            state.resources[idx] = resource;
         },
         setResources(state: State, resources: Array<Resource>) {
             state.resources = resources;
@@ -41,6 +40,7 @@ const store = createStore({
         },
         setActiveResource(state: State, idx: number) {
             console.log('setActiveResource', idx);
+            //todo: decrypt data
             state.activeResourceIndex = idx;
         },
         setCurrentResourceData(state: State, data: string) {
@@ -68,9 +68,13 @@ const store = createStore({
                 return;
             }
         },
-        saveCurrentResource({commit}, resource: Resource) {
-            console.log('saveCurrentResource', resource);
-            commit('saveCurrentResource', resource);
+        async saveCurrentResource({commit}, resource: Resource) {
+            const client = new ApiClient();
+            //todo: encrypt data
+            const res = await client.resource(resource);
+            if (res.id === resource.id) {
+                commit('saveCurrentResource', res);
+            }
         },
         setCurrentResourceData({commit}, data: string) {
             commit('setCurrentResourceData', data);

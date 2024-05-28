@@ -41,6 +41,7 @@ import {
   faListUl,
   faFileAlt,
   faListAlt,
+  faPlus
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -54,7 +55,8 @@ library.add(
   faCog,
   faListUl,
   faFileAlt,
-  faListAlt
+  faListAlt,
+  faPlus
 )
 
 type MenuElement = {
@@ -95,7 +97,7 @@ class App extends Vue {
       {
         hiddenOnCollapse: true,
       },
-      {data: null, title: 'add_new', icon: 'fa-solid fa-add', idx: -1}
+      {data: null, title: 'New Item', icon: faIcon({ icon: 'fa-solid fa-plus' }), idx: -1, class: 'control-item control-item-last'}
     ];
 
     if (resources === undefined) {
@@ -104,7 +106,7 @@ class App extends Vue {
     const tmp = result.concat(resources.map((el: Resource, idx: number) => <MenuElement><unknown>{
       data: el.data,
       title: el.name,
-      icon: faIcon({ icon: 'fa-solid fa-download' }),
+      icon: faIcon({ icon: 'fa-solid fa-code' }),
       idx: idx
     }));
 
@@ -192,5 +194,13 @@ body {
 
 .align-center {
   align-items: center;
+}
+
+.control-item-last {
+  margin-bottom: 24px;
+}
+
+.vsm--item {
+  cursor: pointer;
 }
 </style>

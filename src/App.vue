@@ -119,7 +119,6 @@ class App extends Vue {
     return window.innerHeight;
   }
 
-
 }
 
 const faIcon = (props: any) => {
@@ -148,7 +147,6 @@ body {
   color: #262626;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
 }
 
 #btnSave {
@@ -186,5 +184,13 @@ body {
 
 .container {
   max-width: 900px;
+}
+
+.align-flex-start {
+  align-items: flex-start !important;
+}
+
+.align-center {
+  align-items: center;
 }
 </style>

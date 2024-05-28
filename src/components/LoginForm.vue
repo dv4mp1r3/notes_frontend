@@ -1,10 +1,12 @@
 <template>
-    <div class="login-form">
-        <input class="login-form-element" type="text" placeholder="login" v-model="login" />
-        <input class="login-form-element" type="text" placeholder="password" v-model="password" />
-        <button class="login-form-element" @click="onBtnLoginClick">Login</button>
-        <p class="login-form-element" v-if="loginError">Login error</p>
-    </div>
+    <form v-on:submit="onFormSubmit">
+        <div class="login-form"> 
+            <input class="login-form-element" type="text" placeholder="login" v-model="login" />
+            <input class="login-form-element" type="password" placeholder="password" v-model="password" />
+            <button class="login-form-element" @click="onBtnLoginClick">Login</button>
+            <p class="login-form-element" v-if="loginError">Login error</p>
+        </div>
+    </form>
 </template>
 <script lang="ts">
 import { Component, Vue, toNative } from 'vue-facing-decorator'
@@ -20,7 +22,7 @@ class LoginForm extends Vue {
 
     auth = new Auth();
 
-    async onBtnLoginClick() {
+    async tryLogin() {
         const client = new ApiClient();
         const authenticated = await client.login(this.login as string, this.password as string);
         if (!authenticated) {
@@ -31,6 +33,15 @@ class LoginForm extends Vue {
             this.$store.dispatch('setResources', resources);
             this.$store.dispatch('setActiveResource', resources.length > 0 ? 0 : -1);
         }
+    }
+
+    async onFormSubmit(e) {
+        e.preventDefault();
+        await this.tryLogin();
+    }
+
+    async onBtnLoginClick() {
+        await this.tryLogin();
         this.$emit('onBtnLoginClick', !this.loginError);
     }
 }

@@ -39,6 +39,10 @@ class Editor extends Vue {
     onBtnSaveClick() {
         this.$store.dispatch('saveCurrentResource', this.$store.getters.getActiveResource);  
     }
+
+    mounted() {
+        document.body.classList.add('align-flex-start');
+    }
     
 }
 

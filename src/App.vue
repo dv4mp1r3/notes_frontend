@@ -19,52 +19,13 @@
 <script lang="ts">
 import SidebarMenuLink from './components/SidebarMenuLink.vue'
 import LoginForm from './components/LoginForm.vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import Editor from './components/Editor.vue'
-import { h } from 'vue'
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import { Component, Vue, toNative } from 'vue-facing-decorator'
-import { library } from '@fortawesome/fontawesome-svg-core'
 import axios from 'axios'
+import Menu, { MenuElement } from './models/data/menu'
 
 axios.defaults.withCredentials = true;
-
-import {
-  faDownload,
-  faCode,
-  faCogs,
-  faBell,
-  faPalette,
-  faCubes,
-  faLock,
-  faCog,
-  faListUl,
-  faFileAlt,
-  faListAlt,
-  faPlus
-} from '@fortawesome/free-solid-svg-icons'
-
-library.add(
-  faDownload,
-  faCode,
-  faCogs,
-  faBell,
-  faPalette,
-  faCubes,
-  faLock,
-  faCog,
-  faListUl,
-  faFileAlt,
-  faListAlt,
-  faPlus
-)
-
-type MenuElement = {
-  data: string,
-  title: string,
-  icon: string,
-  idx: number
-};
 
 @Component({ components: { SidebarMenuLink, Editor, LoginForm } })
 class App extends Vue {
@@ -77,7 +38,7 @@ class App extends Vue {
   }
 
   onItemClick(event: PointerEvent, item: MenuElement) {
-    
+
     this.$store.dispatch('setActiveResource', item.idx);
   }
 
@@ -93,23 +54,17 @@ class App extends Vue {
 
   get menu(): Array<Object> {
     const resources = this.$store.getters.getResources;
-    const result = [
-      {
-        hiddenOnCollapse: true,
-      },
-      {data: null, title: 'New Item', icon: faIcon({ icon: 'fa-solid fa-plus' }), idx: -1, class: 'control-item control-item-last'}
-    ];
+    const result = Menu.getDefaultMenu();
 
     if (resources === undefined) {
       return result;
     }
-    const tmp = result.concat(resources.map((el: Resource, idx: number) => <MenuElement><unknown>{
-      data: el.data,
-      title: el.name,
-      icon: faIcon({ icon: 'fa-solid fa-code' }),
-      idx: idx
-    }));
-
+    const tmp = result.concat(
+      resources.map(
+        (el: Resource, idx: number) => <MenuElement><unknown>Menu.addMenuElementFromResource(el, idx)
+      )
+    );
+    console.log('menu', tmp);
     return tmp;
   }
 
@@ -121,12 +76,6 @@ class App extends Vue {
     return window.innerHeight;
   }
 
-}
-
-const faIcon = (props: any) => {
-  return {
-    element: h('div', [h(FontAwesomeIcon, { size: 'lg', ...props })]),
-  }
 }
 
 export default toNative(App);

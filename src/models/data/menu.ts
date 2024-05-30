@@ -49,6 +49,10 @@ export type MenuElement = {
 export const MENU_INDEX_ENCRYPTION_KEY = -2;
 export const MENU_INDEX_NEW_ITEM = -1;
 
+const iconKey = faIcon({ icon: 'fa-solid fa-key' });
+const iconPlus = faIcon({ icon: 'fa-solid fa-plus' });
+const iconCode = faIcon({ icon: 'fa-solid fa-code' });
+
 export default class Menu {
 
     static getDefaultMenu(): Array<Object> {
@@ -59,14 +63,14 @@ export default class Menu {
             {
                 data: null,
                 title: 'Encryption key',
-                icon: faIcon({ icon: 'fa-solid fa-key' }),
+                icon: iconKey,
                 idx: MENU_INDEX_ENCRYPTION_KEY,
                 class: 'control-item'
             },
             {
                 data: null,
                 title: 'New Item',
-                icon: faIcon({ icon: 'fa-solid fa-plus' }),
+                icon: iconPlus,
                 idx: MENU_INDEX_NEW_ITEM,
                 class: 'control-item control-item-last'
             }
@@ -77,7 +81,7 @@ export default class Menu {
         return {
             data: res.data,
             title: res.name,
-            icon: faIcon({ icon: 'fa-solid fa-code' }),
+            icon: iconCode,
             idx: idx
         }
     }

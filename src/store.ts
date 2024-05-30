@@ -57,14 +57,12 @@ const store = createStore({
         setResources({commit}, resources: Array<Resource>) {
             commit('setResources', resources);
         },
+        addResource({commit}) {
+            commit('addResource');
+        },
         setActiveResource({commit}, idx: number) {
             if (idx >= 0) {
                 commit('setActiveResource', idx);
-                return;
-            }
-
-            if (idx === -1) {
-                commit('addResource');
                 return;
             }
         },
@@ -81,6 +79,9 @@ const store = createStore({
         },
         setCurrentResourceName({commit}, name: string) {
             commit('setCurrentResourceName', name);
+        },
+        setEncryptionKey({commit}, data: string) {
+            localStorage.setItem("key", data);
         }
     },
     getters: {
@@ -113,6 +114,11 @@ const store = createStore({
                 return undefined;
             }
             return state.resources[state.activeResourceIndex];
+        },
+        getEncryptionKey(state: State): string
+        {
+            const val = localStorage.getItem("key");
+            return val === null ? 'INSERT KEY HERE': val;
         }
     },
 });

@@ -7,7 +7,8 @@
     <div id="demo" :class="[{ collapsed: collapsed }, { onmobile: isOnMobile }]">
       <div class="demo">
         <div class="container">
-          <editor />
+          <editor v-if="!showEcryptionKey" />
+          <encryption-key-editor v-if="showEcryptionKey" />
         </div>
       </div>
     </div>
@@ -20,17 +21,19 @@
 import SidebarMenuLink from './components/SidebarMenuLink.vue'
 import LoginForm from './components/LoginForm.vue'
 import Editor from './components/Editor.vue'
+import EncryptionKeyEditor from './components/EncryptionKeyEditor.vue'
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import { Component, Vue, toNative } from 'vue-facing-decorator'
 import axios from 'axios'
-import Menu, { MenuElement } from './models/data/menu'
+import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } from './models/data/menu'
 
 axios.defaults.withCredentials = true;
 
-@Component({ components: { SidebarMenuLink, Editor, LoginForm } })
+@Component({ components: { SidebarMenuLink, Editor, LoginForm, EncryptionKeyEditor } })
 class App extends Vue {
   collapsed = false;
   isOnMobile = false;
+  showEcryptionKey = false;
 
   onToggleCollapse(collapsed: boolean) {
     collapsed = collapsed;
@@ -38,7 +41,17 @@ class App extends Vue {
   }
 
   onItemClick(event: PointerEvent, item: MenuElement) {
-
+    if (item.idx === MENU_INDEX_NEW_ITEM) {
+      this.showEcryptionKey = false;
+      this.$store.dispatch('addResource');
+      return;
+    }
+    if (item.idx === MENU_INDEX_ENCRYPTION_KEY) {
+      console.log('onItemClick', item.idx);
+      this.showEcryptionKey = true;
+      return;
+    }
+    this.showEcryptionKey = false;
     this.$store.dispatch('setActiveResource', item.idx);
   }
 
@@ -64,7 +77,6 @@ class App extends Vue {
         (el: Resource, idx: number) => <MenuElement><unknown>Menu.addMenuElementFromResource(el, idx)
       )
     );
-    console.log('menu', tmp);
     return tmp;
   }
 

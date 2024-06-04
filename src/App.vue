@@ -12,6 +12,9 @@
         </div>
       </div>
     </div>
+  <modal :x="modalX" :y="modalY" v-if="isModalVisible">
+    <icon-picker/>
+  </modal>
   </div>
   <login-form v-if="!isAuthorized" />
 
@@ -20,6 +23,8 @@
 <script lang="ts">
 import SidebarMenuLink from './components/SidebarMenuLink.vue'
 import LoginForm from './components/LoginForm.vue'
+import Modal from './components/Modal.vue'
+import IconPicker from './components/IconPicker.vue'
 import Editor from './components/Editor.vue'
 import EncryptionKeyEditor from './components/EncryptionKeyEditor.vue'
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
@@ -29,18 +34,34 @@ import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } fro
 
 axios.defaults.withCredentials = true;
 
-@Component({ components: { SidebarMenuLink, Editor, LoginForm, EncryptionKeyEditor } })
+@Component({ components: { SidebarMenuLink, Editor, LoginForm, EncryptionKeyEditor, Modal, IconPicker } })
 class App extends Vue {
   collapsed = false;
   isOnMobile = false;
   showEcryptionKey = false;
+
+  modalX = 0;
+  modalY = 0;
 
   onToggleCollapse(collapsed: boolean) {
     collapsed = collapsed;
     console.log('onToggleCollapse', collapsed)
   }
 
+  get isModalVisible(): boolean {
+    return this.$store.getters.isIconPickerVisible;
+  }
+
   onItemClick(event: PointerEvent, item: MenuElement) {
+    //@ts-ignore
+    if (this.isIconClick(event)) {
+      console.log('onItemClick target->svg', event.x, event.y);
+      this.$store.dispatch('setIconPickerVisible', true);
+      this.modalX = event.x;
+      this.modalY = event.y;
+      return;
+    }
+    this.$store.dispatch('setIconPickerVisible', false);
     if (item.idx === MENU_INDEX_NEW_ITEM) {
       this.showEcryptionKey = false;
       this.$store.dispatch('addResource');
@@ -53,6 +74,12 @@ class App extends Vue {
     }
     this.showEcryptionKey = false;
     this.$store.dispatch('setActiveResource', item.idx);
+  }
+
+  isIconClick(event: PointerEvent) : boolean
+  {
+    //@ts-ignore
+    return event.srcElement.className === 'vsm--icon' || event.srcElement.className instanceof SVGAnimatedString;
   }
 
   onResize() {

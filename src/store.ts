@@ -5,13 +5,15 @@ type State = {
     user: User | null;
     resources: Array<Resource>;
     activeResourceIndex: number;
+    isIconPickerVisible: boolean
 }
 
 const store = createStore({
     state: {
         user: null,
         activeResourceIndex: -1,
-        resources: []
+        resources: [],
+        isIconPickerVisible: false,
     },
     mutations: {
         setUser(state: State, user: User) {
@@ -48,6 +50,9 @@ const store = createStore({
         },
         setCurrentResourceName(state: State, name: string) {
             state.resources[state.activeResourceIndex].name = name;
+        },
+        setIconPickerVisible(state: State, visible: boolean) {
+            state.isIconPickerVisible = visible;
         }
     },
     actions: {
@@ -82,6 +87,9 @@ const store = createStore({
         },
         setEncryptionKey({commit}, data: string) {
             localStorage.setItem("key", data);
+        },
+        setIconPickerVisible({commit}, visible: boolean) {
+            commit('setIconPickerVisible', visible);
         }
     },
     getters: {
@@ -119,7 +127,11 @@ const store = createStore({
         {
             const val = localStorage.getItem("key");
             return val === null ? 'INSERT KEY HERE': val;
-        }
+        },
+        isIconPickerVisible(state: State): boolean
+        {
+            return state.isIconPickerVisible;
+        } 
     },
 });
 

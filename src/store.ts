@@ -5,7 +5,14 @@ type State = {
     user: User | null;
     resources: Array<Resource>;
     activeResourceIndex: number;
-    isIconPickerVisible: boolean
+    isIconPickerVisible: boolean;
+    resourceIcons: Array<ResourceIcon>;
+}
+
+
+type ResourceIcon = {
+    resourceIndex: number;
+    iconClass: string;
 }
 
 const store = createStore({
@@ -14,6 +21,7 @@ const store = createStore({
         activeResourceIndex: -1,
         resources: [],
         isIconPickerVisible: false,
+        resourceIcons: [],
     },
     mutations: {
         setUser(state: State, user: User) {
@@ -131,7 +139,8 @@ const store = createStore({
         isIconPickerVisible(state: State): boolean
         {
             return state.isIconPickerVisible;
-        } 
+        },
+        
     },
 });
 

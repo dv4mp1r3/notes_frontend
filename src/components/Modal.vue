@@ -4,7 +4,7 @@
             'top': `${y}px`, 
             'left': `${x}px`, 
             'width': `${width}px`,
-            'heigth': `${height}px` }">
+            'height': `${height}px` }">
             <slot/>
         </div>
     </div>

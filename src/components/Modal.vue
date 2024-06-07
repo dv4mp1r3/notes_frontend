@@ -1,6 +1,10 @@
 <template>
     <div @click="modalWrapperClick" className="modal__wrapper">
-        <div className="modal" :style="{'top': `${y}px`, 'left': `${x}px`}">
+        <div className="modal" :style="{
+            'top': `${y}px`, 
+            'left': `${x}px`, 
+            'width': `${width}px`,
+            'heigth': `${height}px` }">
             <slot/>
         </div>
     </div>
@@ -16,6 +20,12 @@ class Modal extends Vue {
     @Prop
     y = 0;
 
+    @Prop
+    width = 100;
+
+    @Prop
+    height = 100;
+
     modalWrapperClick() {
         console.log('modalWrapperClick', this.x, this.y);
         this.$store.dispatch('setIconPickerVisible', false);
@@ -25,8 +35,6 @@ export default toNative(Modal);
 </script>
 <style lang="scss" scoped>
 .modal{
-    width: 300px;
-    height: 100px;
     border-radius: 10px;
     background-color: white;
     padding: 20px 20px;

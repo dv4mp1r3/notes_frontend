@@ -12,7 +12,7 @@
         </div>
       </div>
     </div>
-  <modal :x="modalX" :y="modalY" v-if="isModalVisible">
+  <modal :x="modalX" :y="modalY" :width="196" v-if="isModalVisible">
     <icon-picker/>
   </modal>
   </div>

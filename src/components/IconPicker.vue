@@ -1,19 +1,21 @@
 <template>
     <div class="icon-picker">
       <div class="icon-grid">
-        <div
-          v-for="icon in icons"
-          :key="icon.name"
-          class="icon-item"
-          @click="selectIcon(icon)"
-        >
+        <div v-for="icons in rows" class="icons-row">
+          <div v-for="icon in icons"
+            class="icon-item"
+            @click="selectIcon(icon)"
+          >
           <i :class="icon.class"></i>
+          </div>
+          
         </div>
       </div>
     </div>
   </template>
   
 <script lang="ts">
+
 import { Component, Vue, toNative } from 'vue-facing-decorator';
   
   interface Icon {
@@ -23,20 +25,36 @@ import { Component, Vue, toNative } from 'vue-facing-decorator';
 
   @Component
   class IconPicker extends Vue {
-    icons = [
-          { name: 'icon1', class: 'fa fa-star' },
-          { name: 'icon2', class: 'fa fa-heart' },
-          { name: 'icon3', class: 'fa fa-moon' },
-          { name: 'icon4', class: 'fa fa-sun' },
-          { name: 'icon5', class: 'fa fa-cloud' },
-          { name: 'icon6', class: 'fa fa-snowflake' },
-          { name: 'icon7', class: 'fa fa-bell' },
-          { name: 'icon8', class: 'fa fa-envelope' },
-          { name: 'icon9', class: 'fa fa-comments' },
-          // Add more icons as needed
-        ] as Icon[];
+    rows = [
+      [
+        { name: 'icon1', class: 'fa fa-star' },
+        { name: 'icon2', class: 'fa fa-heart' },
+        { name: 'icon3', class: 'fa fa-moon' },
+      ],
+      [
+        { name: 'icon4', class: 'fa fa-sun' },
+        { name: 'icon5', class: 'fa fa-cloud' },
+        { name: 'icon6', class: 'fa fa-snowflake' },
+      ],
+      [
+        { name: 'icon7', class: 'fa fa-bell' },
+        { name: 'icon8', class: 'fa fa-envelope' },
+        { name: 'icon9', class: 'fa fa-comments' },
+      ],
+      [
+        { name: 'icon7', class: 'fa fa-bell' },
+        { name: 'icon8', class: 'fa fa-envelope' },
+        { name: 'icon9', class: 'fa fa-comments' },
+      ],
+      [
+        { name: 'icon7', class: 'fa fa-bell' },
+        { name: 'icon8', class: 'fa fa-envelope' },
+        { name: 'icon9', class: 'fa fa-comments' },
+      ]
+    ];
 
     selectIcon(icon: Icon) {
+      console.log('selectIcon', icon);
         this.$emit('select', icon);
     }
   }
@@ -45,25 +63,31 @@ export default toNative(IconPicker);
   
 <style scoped>
 .icon-picker {
-max-height: 200px; /* Adjust the height as needed */
+max-height: 111px;
 overflow-y: auto;
 }
 
 .icon-grid {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 10px; /* Adjust the gap as needed */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-content: center;
+  max-height: 220px;
 }
 
 .icon-item {
-display: flex;
-justify-content: center;
-align-items: center;
-padding: 10px;
-border: 1px solid #ccc;
-border-radius: 4px;
-cursor: pointer;
-transition: background-color 0.2s;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
+
+.icons-row {
+  display: flex;
 }
 
 .icon-item:hover {

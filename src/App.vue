@@ -59,6 +59,7 @@ class App extends Vue {
       this.$store.dispatch('setIconPickerVisible', true);
       this.modalX = event.x;
       this.modalY = event.y;
+      this.$store.dispatch('setIconPickerIndex', item.idx);
       return;
     }
     this.$store.dispatch('setIconPickerVisible', false);

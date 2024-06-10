@@ -6,11 +6,11 @@ type State = {
     resources: Array<Resource>;
     activeResourceIndex: number;
     isIconPickerVisible: boolean;
-    resourceIcons: Array<ResourceIcon>;
+    iconPickerIndex: number|undefined;
 }
 
 
-type ResourceIcon = {
+export type ResourceIcon = {
     resourceIndex: number;
     iconClass: string;
 }
@@ -21,7 +21,7 @@ const store = createStore({
         activeResourceIndex: -1,
         resources: [],
         isIconPickerVisible: false,
-        resourceIcons: [],
+        iconPickerIndex: undefined
     },
     mutations: {
         setUser(state: State, user: User) {
@@ -32,6 +32,7 @@ const store = createStore({
                 id: 0,
                 name: '',
                 data: '',
+                icon: 'fa-code'
             };
             const idx = state.resources.push(res) - 1;
             state.resources[idx].name = `Resource №${idx}`;
@@ -61,6 +62,13 @@ const store = createStore({
         },
         setIconPickerVisible(state: State, visible: boolean) {
             state.isIconPickerVisible = visible;
+        },
+        setResourceIcon(state: State, resourceIcon: ResourceIcon) {
+            console.log('setResourceIcon', resourceIcon);
+            state.resources[resourceIcon.resourceIndex].icon = resourceIcon.iconClass;
+        },
+        setIconPickerIndex(state: State, idx: number) {
+            state.iconPickerIndex = idx;
         }
     },
     actions: {
@@ -98,6 +106,12 @@ const store = createStore({
         },
         setIconPickerVisible({commit}, visible: boolean) {
             commit('setIconPickerVisible', visible);
+        },
+        setResourceIcon({commit}, resourceIcon : ResourceIcon) {
+            commit('setResourceIcon', resourceIcon);
+        },
+        setIconPickerIndex({commit}, idx: number) {
+            commit('setIconPickerIndex', idx);
         }
     },
     getters: {
@@ -140,7 +154,14 @@ const store = createStore({
         {
             return state.isIconPickerVisible;
         },
-        
+        getActiveResourceIcon(state: State): string
+        {
+            return state.resources[state.activeResourceIndex].icon;
+        },
+        getIconPickerIndex(state: State): number|undefined
+        {
+            return state.iconPickerIndex;
+        }
     },
 });
 

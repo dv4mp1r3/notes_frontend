@@ -29,6 +29,7 @@ import {
   faComments,
   faTemperatureEmpty, 
 } from '@fortawesome/free-solid-svg-icons'
+import { ResourceIcon } from '../store';
   
 library.add(
   faUserSecret,
@@ -79,8 +80,14 @@ library.add(
     ];
 
     selectIcon(icon: Icon) {
-      console.log('selectIcon', icon);
-        this.$emit('select', icon);
+      console.log('selectIcon', icon.class);
+      const idx = this.$store.getters.getIconPickerIndex;
+      if (idx === undefined) {
+        return;
+      }
+      const data: ResourceIcon = {iconClass: icon.class, resourceIndex: idx};
+      this.$store.dispatch('setResourceIcon', data);
+      this.$emit('select', icon);
     }
   }
 export default toNative(IconPicker);

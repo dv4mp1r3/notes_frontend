@@ -1,7 +1,7 @@
 <template>
   <a v-bind="$attrs">
     <slot />
-  </a>
+  </a>  
 </template>
 
 <script lang="ts">

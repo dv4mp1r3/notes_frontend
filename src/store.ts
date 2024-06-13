@@ -5,13 +5,23 @@ type State = {
     user: User | null;
     resources: Array<Resource>;
     activeResourceIndex: number;
+    isIconPickerVisible: boolean;
+    iconPickerIndex: number|undefined;
+}
+
+
+export type ResourceIcon = {
+    resourceIndex: number;
+    iconClass: string;
 }
 
 const store = createStore({
     state: {
         user: null,
         activeResourceIndex: -1,
-        resources: []
+        resources: [],
+        isIconPickerVisible: false,
+        iconPickerIndex: undefined
     },
     mutations: {
         setUser(state: State, user: User) {
@@ -22,6 +32,7 @@ const store = createStore({
                 id: 0,
                 name: '',
                 data: '',
+                icon: 'fa-code'
             };
             const idx = state.resources.push(res) - 1;
             state.resources[idx].name = `Resource №${idx}`;
@@ -48,6 +59,16 @@ const store = createStore({
         },
         setCurrentResourceName(state: State, name: string) {
             state.resources[state.activeResourceIndex].name = name;
+        },
+        setIconPickerVisible(state: State, visible: boolean) {
+            state.isIconPickerVisible = visible;
+        },
+        setResourceIcon(state: State, resourceIcon: ResourceIcon) {
+            console.log('setResourceIcon', resourceIcon);
+            state.resources[resourceIcon.resourceIndex].icon = resourceIcon.iconClass;
+        },
+        setIconPickerIndex(state: State, idx: number) {
+            state.iconPickerIndex = idx;
         }
     },
     actions: {
@@ -82,6 +103,15 @@ const store = createStore({
         },
         setEncryptionKey({commit}, data: string) {
             localStorage.setItem("key", data);
+        },
+        setIconPickerVisible({commit}, visible: boolean) {
+            commit('setIconPickerVisible', visible);
+        },
+        setResourceIcon({commit}, resourceIcon : ResourceIcon) {
+            commit('setResourceIcon', resourceIcon);
+        },
+        setIconPickerIndex({commit}, idx: number) {
+            commit('setIconPickerIndex', idx);
         }
     },
     getters: {
@@ -119,6 +149,18 @@ const store = createStore({
         {
             const val = localStorage.getItem("key");
             return val === null ? 'INSERT KEY HERE': val;
+        },
+        isIconPickerVisible(state: State): boolean
+        {
+            return state.isIconPickerVisible;
+        },
+        getActiveResourceIcon(state: State): string
+        {
+            return state.resources[state.activeResourceIndex].icon;
+        },
+        getIconPickerIndex(state: State): number|undefined
+        {
+            return state.iconPickerIndex;
         }
     },
 });

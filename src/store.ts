@@ -107,8 +107,9 @@ const store = createStore({
         setIconPickerVisible({commit}, visible: boolean) {
             commit('setIconPickerVisible', visible);
         },
-        setResourceIcon({commit}, resourceIcon : ResourceIcon) {
+        async setResourceIcon({commit, dispatch, state}, resourceIcon : ResourceIcon) {
             commit('setResourceIcon', resourceIcon);
+            dispatch('saveCurrentResource', state.resources[resourceIcon.resourceIndex]);
         },
         setIconPickerIndex({commit}, idx: number) {
             commit('setIconPickerIndex', idx);

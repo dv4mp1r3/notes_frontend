@@ -30,7 +30,7 @@ class LoginForm extends Vue {
         } else {
             this.$store.dispatch('updateUser', { username: this.login, password: this.password });
             const resources = await client.resources();
-            this.$store.dispatch('setResources', resources);
+            this.$store.dispatch('setResources', {resources, pwd: this.$store.getters.getEncryptionKey});
             this.$store.dispatch('setActiveResource', resources.length > 0 ? 0 : -1);
         }
     }

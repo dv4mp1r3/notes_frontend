@@ -1,5 +1,6 @@
 import {createStore} from 'vuex'
 import ApiClient from './models/apiClient';
+import {AES, enc} from 'crypto-js';
 
 type State = {
     user: User | null;
@@ -13,6 +14,11 @@ type State = {
 export type ResourceIcon = {
     resourceIndex: number;
     iconClass: string;
+}
+
+export type SetResourceData = {
+    resources: Array<Resource>;
+    pwd: string;
 }
 
 const store = createStore({
@@ -42,8 +48,13 @@ const store = createStore({
             const idx = state.resources.findIndex(el => el.id === resource.id);
             state.resources[idx] = resource;
         },
-        setResources(state: State, resources: Array<Resource>) {
-            state.resources = resources;
+        setResources(state: State, data: SetResourceData) {
+            state.resources = data.resources.map(res =>  {
+                const resourceData = AES.decrypt(res.data, data.pwd).toString(enc.Utf8);
+                console.log('setResources', resourceData);
+                res.data = resourceData ? resourceData : res.data;
+                return res;
+            });
         },
         deleteResource(state: State, resource: Resource) {
             state.resources.filter(el => el.id !== resource.id);
@@ -51,7 +62,6 @@ const store = createStore({
         },
         setActiveResource(state: State, idx: number) {
             console.log('setActiveResource', idx);
-            //todo: decrypt data
             state.activeResourceIndex = idx;
         },
         setCurrentResourceData(state: State, data: string) {
@@ -75,8 +85,8 @@ const store = createStore({
         updateUser({ commit }, user: User) {
             commit('setUser', user);
         },
-        setResources({commit}, resources: Array<Resource>) {
-            commit('setResources', resources);
+        setResources({commit}, data: SetResourceData) {
+            commit('setResources', data);
         },
         addResource({commit}) {
             commit('addResource');
@@ -87,10 +97,11 @@ const store = createStore({
                 return;
             }
         },
-        async saveCurrentResource({commit}, resource: Resource) {
+        async saveCurrentResource({commit, getters}, resource: Resource) {
             const client = new ApiClient();
-            //todo: encrypt data
-            const res = await client.resource(resource);
+            const encrDataResource = Object.assign({}, resource);
+            encrDataResource.data = AES.encrypt(resource.data, getters.getEncryptionKey).toString();
+            const res = await client.resource(encrDataResource);
             if (res.id === resource.id) {
                 commit('saveCurrentResource', res);
             }

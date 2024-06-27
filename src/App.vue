@@ -34,6 +34,8 @@ import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } fro
 
 axios.defaults.withCredentials = true;
 
+const LINK_ACTIVE_CLASS = 'link-active';
+
 @Component({ components: { SidebarMenuLink, Editor, LoginForm, EncryptionKeyEditor, Modal, IconPicker } })
 class App extends Vue {
   collapsed = false;
@@ -52,7 +54,7 @@ class App extends Vue {
     return this.$store.getters.isIconPickerVisible;
   }
 
-  onItemClick(event: PointerEvent, item: MenuElement) {
+  onItemClick(event: PointerEvent, item: MenuElement) {    
     //@ts-ignore
     if (this.isIconClick(event)) {
       console.log('onItemClick target->svg', event.x, event.y);
@@ -66,14 +68,21 @@ class App extends Vue {
     if (item.idx === MENU_INDEX_NEW_ITEM) {
       this.showEcryptionKey = false;
       this.$store.dispatch('addResource');
+      setTimeout(()=>document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
       return;
     }
+    document.querySelector('.link-active')?.classList.remove(LINK_ACTIVE_CLASS);
     if (item.idx === MENU_INDEX_ENCRYPTION_KEY) {
       console.log('onItemClick', item.idx);
       this.showEcryptionKey = true;
       return;
     }
+    const menuLink = (event.target as Element).closest('li.vsm--item');
+    if (menuLink && !menuLink.classList.contains(LINK_ACTIVE_CLASS)) {
+      menuLink.classList.add(LINK_ACTIVE_CLASS);
+    }
     this.showEcryptionKey = false;
+    
     this.$store.dispatch('setActiveResource', item.idx);
   }
 
@@ -192,4 +201,9 @@ body {
 .vsm--item {
   cursor: pointer;
 }
+
+.link-active {
+  background: cadetblue;
+}
+
 </style>

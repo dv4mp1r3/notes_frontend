@@ -64,6 +64,10 @@ class App extends Vue {
       this.$store.dispatch('setIconPickerIndex', item.idx);
       return;
     }
+    if (this.isIconDeleteCkick(event)) {
+      this.$store.dispatch('deleteResource', item.idx);
+      return;
+    }
     this.$store.dispatch('setIconPickerVisible', false);
     if (item.idx === MENU_INDEX_NEW_ITEM) {
       this.showEcryptionKey = false;
@@ -84,6 +88,12 @@ class App extends Vue {
     this.showEcryptionKey = false;
     
     this.$store.dispatch('setActiveResource', item.idx);
+  }
+
+  isIconDeleteCkick(event: PointerEvent) : boolean
+  {
+    //@ts-ignore
+    return event.srcElement.className === 'vsm--badge';
   }
 
   isIconClick(event: PointerEvent) : boolean

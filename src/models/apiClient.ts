@@ -34,6 +34,14 @@ export default class ApiClient {
         return data;
     }
 
+    public async deleteResource(res: Resource): Promise<boolean> {
+        if (res.id > 0) {
+            const {status} = await axios.delete(ApiClient.getMethod('resource', res.id));
+            return status === 200;
+        }
+        return false;
+    }
+
     public static getMethod(name: string, id: number = 0) : string {
         return id !== 0 ? `${host}/${name}/${id}` : `${host}/${name}`;
     }

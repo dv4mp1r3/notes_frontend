@@ -57,8 +57,7 @@ const store = createStore({
             });
         },
         deleteResource(state: State, resource: Resource) {
-            state.resources.filter(el => el.id !== resource.id);
-
+            state.resources = state.resources.filter(el => el.id !== resource.id);
         },
         setActiveResource(state: State, idx: number) {
             console.log('setActiveResource', idx);
@@ -124,6 +123,18 @@ const store = createStore({
         },
         setIconPickerIndex({commit}, idx: number) {
             commit('setIconPickerIndex', idx);
+        },
+        async deleteResource({commit, state}, idx: number) {
+            const resource = state.resources[idx];
+            if (resource.id <= 0) {
+                return;
+            }
+                        
+            const client = new ApiClient();
+            const isDeleted = await client.deleteResource(resource);  
+            if (isDeleted) {
+                commit('deleteResource', resource);
+            }            
         }
     },
     getters: {

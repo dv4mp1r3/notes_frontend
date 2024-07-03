@@ -39,11 +39,17 @@ const faIcon = (props: any) => {
     }
 }
 
+export type Badge = {
+    text: string,
+    class?: string
+}
+
 export type MenuElement = {
     data: string,
     title: string,
     icon: any,
     idx: number
+    badge?: Badge
 };
 
 export const MENU_INDEX_ENCRYPTION_KEY = -2;
@@ -87,7 +93,10 @@ export default class Menu {
             data: res.data,
             title: res.name,
             icon: iconMap.get(res.icon),
-            idx: idx
+            idx: idx,
+            badge: {
+                text: '❌',
+            }
         }
     }
 }

@@ -3,6 +3,9 @@
         <div class="login-form"> 
             <input class="login-form-element" type="text" placeholder="login" v-model="login" />
             <input class="login-form-element" type="password" placeholder="password" v-model="password" />
+            <div class="login-form-element">
+                <EncryptionKeyEditor :align-flex-start="false" />
+            </div>
             <button class="login-form-element" @click="onBtnLoginClick">Login</button>
             <p class="login-form-element" v-if="loginError">Login error</p>
         </div>
@@ -12,8 +15,9 @@
 import { Component, Vue, toNative } from 'vue-facing-decorator'
 import Auth from './../models/auth'
 import ApiClient from '../models/apiClient';
+import EncryptionKeyEditor from './EncryptionKeyEditor.vue';
 
-@Component
+@Component({components:{EncryptionKeyEditor}})
 class LoginForm extends Vue {
 
     login: string | undefined;

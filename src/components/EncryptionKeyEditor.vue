@@ -13,6 +13,9 @@ class EncryptionKeyEditor extends Vue {
     @Prop
     minHeight: number = 640;
 
+    @Prop({required: false, default: true})
+    alignFlexStart? :boolean;
+
     get data() : string {
         return this.$store.getters.getEncryptionKey;
     }
@@ -22,7 +25,9 @@ class EncryptionKeyEditor extends Vue {
     }
 
     mounted() {
-        document.body.classList.add('align-flex-start');
+        if (this.alignFlexStart) {
+            document.body.classList.add('align-flex-start');
+        }
     }
     
 }

@@ -26,8 +26,7 @@ import {
   faSnowflake,
   faBell,
   faEnvelope,
-  faComments,
-  faTemperatureEmpty, 
+  faComments 
 } from '@fortawesome/free-solid-svg-icons'
 import { ResourceIcon } from '../store';
   
@@ -67,16 +66,6 @@ library.add(
         { name: 'icon8', class: 'fa-envelope' },
         { name: 'icon9', class: 'fa-comments' },
       ],
-      [
-        { name: 'icon7', class: 'fa-bell' },
-        { name: 'icon8', class: 'fa-envelope' },
-        { name: 'icon9', class: 'fa-comments' },
-      ],
-      [
-        { name: 'icon7', class: 'fa-bell' },
-        { name: 'icon8', class: 'fa-envelope' },
-        { name: 'icon9', class: 'fa-comments' },
-      ]
     ];
 
     selectIcon(icon: Icon) {

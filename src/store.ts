@@ -1,8 +1,26 @@
-import {createStore} from 'vuex'
+//@ts-ignore
+import {createStore, Commit, Getters, Dispatch} from 'vuex'
 import ApiClient from './models/apiClient';
 import {AES, enc} from 'crypto-js';
 
-type State = {
+export interface CommitFunction {
+    commit: Commit;
+}
+
+export interface CommitStateFunction<T> extends CommitFunction {
+    state: T;
+}
+
+export interface CommitStateDispatchFunction<T, M> extends CommitFunction {
+    state: T;
+    dispatch: M;
+}
+
+export interface CommitGettersFunction<T> extends CommitFunction {
+    getters: T;
+}
+
+export type State = {
     user: User | null;
     resources: Array<Resource>;
     activeResourceIndex: number;
@@ -42,7 +60,7 @@ const store = createStore({
             };
             const idx = state.resources.push(res) - 1;
             state.resources[idx].name = `Resource №${idx}`;
-            this.commit('setActiveResource', idx);
+            state.activeResourceIndex = idx;
         },
         saveCurrentResource(state: State, resource: Resource) {           
             const idx = state.resources.findIndex(el => el.id === resource.id);
@@ -81,22 +99,22 @@ const store = createStore({
         }
     },
     actions: {
-        updateUser({ commit }, user: User) {
+        updateUser({ commit }: CommitFunction, user: User) {
             commit('setUser', user);
         },
-        setResources({commit}, data: SetResourceData) {
+        setResources({commit}: CommitFunction, data: SetResourceData) {
             commit('setResources', data);
         },
-        addResource({commit}) {
+        addResource({commit}: CommitFunction) {
             commit('addResource');
         },
-        setActiveResource({commit}, idx: number) {
+        setActiveResource({commit}: CommitFunction, idx: number) {
             if (idx >= 0) {
                 commit('setActiveResource', idx);
                 return;
             }
         },
-        async saveCurrentResource({commit, getters}, resource: Resource) {
+        async saveCurrentResource({commit, getters}: CommitGettersFunction<Getters>, resource: Resource) {
             const client = new ApiClient();
             const encrDataResource = Object.assign({}, resource);
             encrDataResource.data = AES.encrypt(resource.data, getters.getEncryptionKey).toString();
@@ -105,26 +123,27 @@ const store = createStore({
                 commit('saveCurrentResource', res);
             }
         },
-        setCurrentResourceData({commit}, data: string) {
+        setCurrentResourceData({commit} : CommitFunction, data: string) {
             commit('setCurrentResourceData', data);
         },
-        setCurrentResourceName({commit}, name: string) {
+        setCurrentResourceName({commit}: CommitFunction, name: string) {
             commit('setCurrentResourceName', name);
         },
-        setEncryptionKey({commit}, data: string) {
+        //@ts-ignore
+        setEncryptionKey({commit}: CommitFunction, data: string) {
             localStorage.setItem("key", data);
         },
-        setIconPickerVisible({commit}, visible: boolean) {
+        setIconPickerVisible({commit}: CommitFunction, visible: boolean) {
             commit('setIconPickerVisible', visible);
         },
-        async setResourceIcon({commit, dispatch, state}, resourceIcon : ResourceIcon) {
+        async setResourceIcon({commit, dispatch, state} : CommitStateDispatchFunction<State, Dispatch> , resourceIcon : ResourceIcon) {
             commit('setResourceIcon', resourceIcon);
             dispatch('saveCurrentResource', state.resources[resourceIcon.resourceIndex]);
         },
-        setIconPickerIndex({commit}, idx: number) {
+        setIconPickerIndex({commit} : CommitFunction, idx: number) {
             commit('setIconPickerIndex', idx);
         },
-        async deleteResource({commit, state}, idx: number) {
+        async deleteResource({commit, state} : CommitStateFunction<State>, idx: number) {
             const resource = state.resources[idx];
             if (resource.id <= 0) {
                 return;
@@ -168,6 +187,7 @@ const store = createStore({
             }
             return state.resources[state.activeResourceIndex];
         },
+        //@ts-ignore
         getEncryptionKey(state: State): string
         {
             const val = localStorage.getItem("key");

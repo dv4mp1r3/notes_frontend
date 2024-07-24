@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const host = 'http://localhost:8080'
+const host = import.meta.env.VITE_BACKEND_URL;
 
 export default class ApiClient {
     public async login(username: string, password: string) : Promise<boolean> {

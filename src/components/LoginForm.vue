@@ -39,7 +39,7 @@ class LoginForm extends Vue {
         }
     }
 
-    async onFormSubmit(e) {
+    async onFormSubmit(e: any) {
         e.preventDefault();
         await this.tryLogin();
     }

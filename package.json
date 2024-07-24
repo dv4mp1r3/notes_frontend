@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 4000",
+    "dev": "VITE_BACKEND_URL=http://localhost:8080 vite --port 4000",
     "build": "vue-tsc && vite build",
     "preview": "vite preview"
   },
@@ -26,5 +26,11 @@
     "typescript": "^5.2.2",
     "vite": "^5.1.4",
     "vue-tsc": "^1.8.27"
+  },
+  "eslintConfig": {
+    "rules": {
+      "no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": "warn"
+    }
   }
 }

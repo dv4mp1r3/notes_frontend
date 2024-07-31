@@ -1,5 +1,6 @@
 services:
   frontend:
+    restart: always
     build:
       context: ./
       target: prod
@@ -17,9 +18,13 @@ services:
     volumes:
       - ./nginx.conf.template:/etc/nginx/templates/frontend.conf.template
   backend:
+    restart: always
     image: dvp-notes-backend:1
     environment:
       - SALT=${SALT}
+      - API_PREFIX=${API_PREFIX}
+      - APP_PORT=${APP_PORT}
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN}
     networks:
       - notes
     volumes:

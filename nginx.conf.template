@@ -1,0 +1,16 @@
+server {
+    index index.html;
+    server_name ${NGINX_HOST};
+    listen 80;
+    root /usr/share/nginx/html;
+
+    location ~ \.(css|js|img|svg|ico|png)?.*$ {
+        expires max;
+        log_not_found off;
+        try_files $uri = 404;
+    }
+
+    location ^~ /api/ {
+        proxy_pass http://backend:8080/;
+    }
+}

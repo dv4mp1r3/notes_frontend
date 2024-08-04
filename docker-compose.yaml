@@ -14,7 +14,7 @@ services:
     networks:
       - notes
     ports:
-      - "80:80"
+      - "${FRONTEND_FORWARD_TO}:80"
     volumes:
       - ./nginx.conf.template:/etc/nginx/templates/frontend.conf.template
   backend:

@@ -10,13 +10,13 @@ import { ComponentCustomProperties } from "vue";
 import { Store } from "vuex";
 
 declare module "@vue/runtime-core" {
-  interface ComponentCustomProperties {
-    $store: Store<State>;
-  }
+    interface ComponentCustomProperties {
+        $store: Store<State>;
+    }
 }
 
 createApp(App)
-//@ts-ignore
-.use(VueSidebarMenu)
-.use(appStore)
-.mount('#app')
+    //@ts-ignore
+    .use(VueSidebarMenu)
+    .use(appStore)
+    .mount('#app')

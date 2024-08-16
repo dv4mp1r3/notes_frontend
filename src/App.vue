@@ -1,22 +1,22 @@
 <template>
-  <div v-if="isAuthorized">
-    <sidebar-menu v-model:collapsed="collapsed" :menu="menu" :link-component-name="'sidebar-menu-link'"
-      :show-one-child="true" @update:collapsed="onToggleCollapse" @item-click="onItemClick"
-      :style="[{ 'max-height': `${sidebarMaxHeight}px` }]" />
-    <div v-if="isOnMobile && !collapsed" class="sidebar-overlay" @click="collapsed = true" />
-    <div id="demo" :class="[{ collapsed: collapsed }, { onmobile: isOnMobile }]">
-      <div class="demo">
-        <div class="container">
-          <editor v-if="!showEcryptionKey" />
-          <encryption-key-editor v-if="showEcryptionKey" />
+    <div v-if="isAuthorized">
+        <sidebar-menu v-model:collapsed="collapsed" :menu="menu" :link-component-name="'sidebar-menu-link'"
+            :show-one-child="true" @update:collapsed="onToggleCollapse" @item-click="onItemClick"
+            :style="[{ 'max-height': `${sidebarMaxHeight}px` }]" />
+        <div v-if="isOnMobile && !collapsed" class="sidebar-overlay" @click="collapsed = true" />
+        <div id="demo" :class="[{ collapsed: collapsed }, { onmobile: isOnMobile }]">
+            <div class="demo">
+                <div class="container">
+                    <editor v-if="!showEcryptionKey" />
+                    <encryption-key-editor v-if="showEcryptionKey" />
+                </div>
+            </div>
         </div>
-      </div>
+        <modal :x="modalX" :y="modalY" :width="196" v-if="isModalVisible">
+            <icon-picker />
+        </modal>
     </div>
-  <modal :x="modalX" :y="modalY" :width="196" v-if="isModalVisible">
-    <icon-picker/>
-  </modal>
-  </div>
-  <login-form v-if="!isAuthorized" />
+    <login-form v-if="!isAuthorized" />
 
 </template>
 
@@ -28,7 +28,7 @@ import IconPicker from './components/IconPicker.vue'
 import Editor from './components/Editor.vue'
 import EncryptionKeyEditor from './components/EncryptionKeyEditor.vue'
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
-import { Component, Vue, toNative } from 'vue-facing-decorator'
+import { Component, Vue } from 'vue-facing-decorator'
 import axios from 'axios'
 import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } from './models/data/menu'
 
@@ -37,107 +37,104 @@ axios.defaults.withCredentials = true;
 const LINK_ACTIVE_CLASS = 'link-active';
 
 @Component({ components: { SidebarMenuLink, Editor, LoginForm, EncryptionKeyEditor, Modal, IconPicker } })
-class App extends Vue {
-  collapsed = false;
-  isOnMobile = false;
-  showEcryptionKey = false;
+export default class App extends Vue {
+    collapsed = false;
+    isOnMobile = false;
+    showEcryptionKey = false;
 
-  modalX = 0;
-  modalY = 0;
+    modalX = 0;
+    modalY = 0;
 
-  onToggleCollapse(collapsed: boolean) {
-    collapsed = collapsed;
-    console.log('onToggleCollapse', collapsed)
-  }
-
-  get isModalVisible(): boolean {
-    return this.$store.getters.isIconPickerVisible;
-  }
-
-  onItemClick(event: PointerEvent, item: MenuElement) {    
-    //@ts-ignore
-    if (this.isIconClick(event)) {
-      console.log('onItemClick target->svg', event.x, event.y);
-      this.$store.dispatch('setIconPickerVisible', true);
-      this.modalX = event.x;
-      this.modalY = event.y;
-      this.$store.dispatch('setIconPickerIndex', item.idx);
-      return;
+    onToggleCollapse(collapsed: boolean) {
+        collapsed = collapsed;
+        console.log('onToggleCollapse', collapsed)
     }
-    if (this.isIconDeleteCkick(event)) {
-      this.$store.dispatch('deleteResource', item.idx);
-      return;
+
+    get isModalVisible(): boolean {
+        return this.$store.getters.isIconPickerVisible;
     }
-    this.$store.dispatch('setIconPickerVisible', false);
-    if (item.idx === MENU_INDEX_NEW_ITEM) {
-      this.showEcryptionKey = false;
-      this.$store.dispatch('addResource');
-      setTimeout(()=>document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
-      return;
+
+    onItemClick(event: PointerEvent, item: MenuElement) {
+        //@ts-ignore
+        if (this.isIconClick(event)) {
+            console.log('onItemClick target->svg', event.x, event.y);
+            this.$store.dispatch('setIconPickerVisible', true);
+            this.modalX = event.x;
+            this.modalY = event.y;
+            this.$store.dispatch('setIconPickerIndex', item.idx);
+            return;
+        }
+        if (this.isIconDeleteCkick(event)) {
+            this.$store.dispatch('deleteResource', item.idx);
+            return;
+        }
+        this.$store.dispatch('setIconPickerVisible', false);
+        if (item.idx === MENU_INDEX_NEW_ITEM) {
+            this.showEcryptionKey = false;
+            this.$store.dispatch('addResource');
+            setTimeout(() => document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
+            return;
+        }
+        document.querySelector('.link-active')?.classList.remove(LINK_ACTIVE_CLASS);
+        if (item.idx === MENU_INDEX_ENCRYPTION_KEY) {
+            console.log('onItemClick', item.idx);
+            this.showEcryptionKey = true;
+            return;
+        }
+        const menuLink = (event.target as Element).closest('li.vsm--item');
+        if (menuLink && !menuLink.classList.contains(LINK_ACTIVE_CLASS)) {
+            menuLink.classList.add(LINK_ACTIVE_CLASS);
+        }
+        this.showEcryptionKey = false;
+
+        this.$store.dispatch('setActiveResource', item.idx);
     }
-    document.querySelector('.link-active')?.classList.remove(LINK_ACTIVE_CLASS);
-    if (item.idx === MENU_INDEX_ENCRYPTION_KEY) {
-      console.log('onItemClick', item.idx);
-      this.showEcryptionKey = true;
-      return;
+
+    isIconDeleteCkick(event: PointerEvent): boolean {
+        //@ts-ignore
+        return event.srcElement.className === 'vsm--badge';
     }
-    const menuLink = (event.target as Element).closest('li.vsm--item');
-    if (menuLink && !menuLink.classList.contains(LINK_ACTIVE_CLASS)) {
-      menuLink.classList.add(LINK_ACTIVE_CLASS);
+
+    isIconClick(event: PointerEvent): boolean {
+        //@ts-ignore
+        return event.srcElement.className === 'vsm--icon' || event.srcElement.className instanceof SVGAnimatedString;
     }
-    this.showEcryptionKey = false;
-    
-    this.$store.dispatch('setActiveResource', item.idx);
-  }
 
-  isIconDeleteCkick(event: PointerEvent) : boolean
-  {
-    //@ts-ignore
-    return event.srcElement.className === 'vsm--badge';
-  }
-
-  isIconClick(event: PointerEvent) : boolean
-  {
-    //@ts-ignore
-    return event.srcElement.className === 'vsm--icon' || event.srcElement.className instanceof SVGAnimatedString;
-  }
-
-  onResize() {
-    if (window.innerWidth <= 767) {
-      this.isOnMobile = true
-      this.collapsed = true
-    } else {
-      this.isOnMobile = false
-      this.collapsed = false
+    onResize() {
+        if (window.innerWidth <= 767) {
+            this.isOnMobile = true
+            this.collapsed = true
+        } else {
+            this.isOnMobile = false
+            this.collapsed = false
+        }
     }
-  }
 
-  get menu(): Array<Object> {
-    const resources = this.$store.getters.getResources;
-    const result = Menu.getDefaultMenu();
+    get menu(): Array<Object> {
+        const resources = this.$store.getters.getResources;
+        const result = Menu.getDefaultMenu();
 
-    if (resources === undefined) {
-      return result;
+        if (resources === undefined) {
+            return result;
+        }
+        const tmp = result.concat(
+            resources.map(
+                (el: Resource, idx: number) => <MenuElement><unknown>Menu.addMenuElementFromResource(el, idx)
+            )
+        );
+        return tmp;
     }
-    const tmp = result.concat(
-      resources.map(
-        (el: Resource, idx: number) => <MenuElement><unknown>Menu.addMenuElementFromResource(el, idx)
-      )
-    );
-    return tmp;
-  }
 
-  get isAuthorized(): boolean {
-    return this.$store.getters.isLoggedIn;
-  }
+    get isAuthorized(): boolean {
+        return this.$store.getters.isLoggedIn;
+    }
 
-  get sidebarMaxHeight(): number {
-    return window.innerHeight;
-  }
+    get sidebarMaxHeight(): number {
+        return window.innerHeight;
+    }
 
 }
 
-export default toNative(App);
 </script>
 
 <style lang="scss">
@@ -145,75 +142,74 @@ export default toNative(App);
 
 body,
 html {
-  margin: 0;
-  height: 100%;
+    margin: 0;
+    height: 100%;
 
 }
 
 body {
-  font-family: 'Source Sans Pro', sans-serif;
-  font-size: 18px;
-  background-color: #f2f4f7;
-  color: #262626;
-  display: flex;
-  flex-direction: column;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 18px;
+    background-color: #f2f4f7;
+    color: #262626;
+    display: flex;
+    flex-direction: column;
 }
 
 #btnSave {
-  margin-bottom: 8px;
+    margin-bottom: 8px;
 }
 
 #demo {
-  padding-left: 290px;
-  transition: 0.3s ease;
+    padding-left: 290px;
+    transition: 0.3s ease;
 }
 
 #demo.collapsed {
-  padding-left: 65px;
+    padding-left: 65px;
 }
 
 #demo.onmobile {
-  padding-left: 65px;
+    padding-left: 65px;
 }
 
 .sidebar-overlay {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background-color: #000;
-  opacity: 0.5;
-  z-index: 900;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: #000;
+    opacity: 0.5;
+    z-index: 900;
 }
 
 .demo {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 .container {
-  max-width: 900px;
+    max-width: 900px;
 }
 
 .align-flex-start {
-  align-items: flex-start !important;
+    align-items: flex-start !important;
 }
 
 .align-center {
-  align-items: center;
+    align-items: center;
 }
 
 .control-item-last {
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 }
 
 .vsm--item {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .link-active {
-  background: cadetblue;
+    background: cadetblue;
 }
-
 </style>

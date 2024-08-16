@@ -1,6 +1,6 @@
 <template>
     <form v-on:submit="onFormSubmit">
-        <div class="login-form"> 
+        <div class="login-form">
             <input class="login-form-element" type="text" placeholder="login" v-model="login" />
             <input class="login-form-element" type="password" placeholder="password" v-model="password" />
             <div class="login-form-element">
@@ -17,8 +17,8 @@ import Auth from './../models/auth'
 import ApiClient from '../models/apiClient';
 import EncryptionKeyEditor from './EncryptionKeyEditor.vue';
 
-@Component({components:{EncryptionKeyEditor}})
-class LoginForm extends Vue {
+@Component({ components: { EncryptionKeyEditor } })
+export default class LoginForm extends Vue {
 
     login: string | undefined;
     password: string | undefined;
@@ -34,7 +34,7 @@ class LoginForm extends Vue {
         } else {
             this.$store.dispatch('updateUser', { username: this.login, password: this.password });
             const resources = await client.resources();
-            this.$store.dispatch('setResources', {resources, pwd: this.$store.getters.getEncryptionKey});
+            this.$store.dispatch('setResources', { resources, pwd: this.$store.getters.getEncryptionKey });
             this.$store.dispatch('setActiveResource', resources.length > 0 ? 0 : -1);
         }
     }
@@ -49,7 +49,7 @@ class LoginForm extends Vue {
         this.$emit('onBtnLoginClick', !this.loginError);
     }
 }
-export default toNative(LoginForm);
+
 </script>
 <style lang="scss">
 .login-form {

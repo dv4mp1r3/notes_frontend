@@ -5,22 +5,22 @@
         </div>
         <div>
             <label>Name:</label>
-            <input type="text" v-model="name"/>
+            <input type="text" v-model="name" />
         </div>
         <textarea v-model="data"></textarea>
     </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue, toNative, Prop } from 'vue-facing-decorator'
+import { Component, Vue, Prop } from 'vue-facing-decorator'
 
 @Component
-class Editor extends Vue {
+export default class Editor extends Vue {
 
     @Prop
     minHeight: number = 640;
 
-    get data() : string {
+    get data(): string {
         return this.$store.getters.getActiveResourceData;
     }
 
@@ -37,16 +37,15 @@ class Editor extends Vue {
     }
 
     onBtnSaveClick() {
-        this.$store.dispatch('saveCurrentResource', this.$store.getters.getActiveResource);  
+        this.$store.dispatch('saveCurrentResource', this.$store.getters.getActiveResource);
     }
 
     mounted() {
         document.body.classList.add('align-flex-start');
     }
-    
+
 }
 
-export default toNative(Editor)
 </script>
 <style scoped>
 .editor {

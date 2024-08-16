@@ -40,7 +40,7 @@ export type SetResourceData = {
 }
 
 const store = createStore({
-    state: {
+    state: <State>{
         user: null,
         activeResourceIndex: -1,
         resources: [],

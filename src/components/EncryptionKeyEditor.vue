@@ -5,18 +5,18 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, toNative, Prop } from 'vue-facing-decorator'
+import { Component, Vue, Prop } from 'vue-facing-decorator'
 
 @Component
-class EncryptionKeyEditor extends Vue {
+export default class EncryptionKeyEditor extends Vue {
 
     @Prop
     minHeight: number = 640;
 
-    @Prop({required: false, default: true})
-    alignFlexStart? :boolean;
+    @Prop({ required: false, default: true })
+    alignFlexStart?: boolean;
 
-    get data() : string {
+    get data(): string {
         return this.$store.getters.getEncryptionKey;
     }
 
@@ -29,10 +29,9 @@ class EncryptionKeyEditor extends Vue {
             document.body.classList.add('align-flex-start');
         }
     }
-    
+
 }
 
-export default toNative(EncryptionKeyEditor)
 </script>
 <style scoped>
 .editor {

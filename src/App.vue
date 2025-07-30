@@ -9,6 +9,7 @@ import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import { Component, Vue } from 'vue-facing-decorator'
 import axios from 'axios'
 import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } from './models/data/menu'
+import {Resource} from "./models/data/resource.ts";
 
 axios.defaults.withCredentials = true;
 
@@ -24,7 +25,7 @@ export default class App extends Vue {
   modalY = 0;
 
   onToggleCollapse(collapsed: boolean) {
-    collapsed = collapsed;
+    this.collapsed = collapsed;
     console.log('onToggleCollapse', collapsed)
   }
 

@@ -1,3 +1,119 @@
+<script lang="ts">
+import SidebarMenuLink from './components/SidebarMenuLink.vue'
+import LoginForm from './components/LoginForm.vue'
+import Modal from './components/Modal.vue'
+import IconPicker from './components/IconPicker.vue'
+import Editor from './components/Editor.vue'
+import EncryptionKeyEditor from './components/EncryptionKeyEditor.vue'
+import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
+import { Component, Vue } from 'vue-facing-decorator'
+import axios from 'axios'
+import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } from './models/data/menu'
+
+axios.defaults.withCredentials = true;
+
+const LINK_ACTIVE_CLASS = 'link-active';
+
+@Component({ components: { SidebarMenuLink, Editor, LoginForm, EncryptionKeyEditor, Modal, IconPicker } })
+export default class App extends Vue {
+  collapsed = false;
+  isOnMobile = false;
+  showEcryptionKey = false;
+
+  modalX = 0;
+  modalY = 0;
+
+  onToggleCollapse(collapsed: boolean) {
+    collapsed = collapsed;
+    console.log('onToggleCollapse', collapsed)
+  }
+
+  get isModalVisible(): boolean {
+    return this.$store.getters.isIconPickerVisible;
+  }
+
+  onItemClick(event: PointerEvent, item: MenuElement) {
+    //@ts-ignore
+    if (this.isIconClick(event)) {
+      console.log('onItemClick target->svg', event.x, event.y);
+      this.$store.dispatch('setIconPickerVisible', true);
+      this.modalX = event.x;
+      this.modalY = event.y;
+      this.$store.dispatch('setIconPickerIndex', item.idx);
+      return;
+    }
+    if (this.isIconDeleteCkick(event)) {
+      this.$store.dispatch('deleteResource', item.idx);
+      return;
+    }
+    this.$store.dispatch('setIconPickerVisible', false);
+    if (item.idx === MENU_INDEX_NEW_ITEM) {
+      this.showEcryptionKey = false;
+      this.$store.dispatch('addResource');
+      setTimeout(() => document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
+      return;
+    }
+    document.querySelector('.link-active')?.classList.remove(LINK_ACTIVE_CLASS);
+    if (item.idx === MENU_INDEX_ENCRYPTION_KEY) {
+      console.log('onItemClick', item.idx);
+      this.showEcryptionKey = true;
+      return;
+    }
+    const menuLink = (event.target as Element).closest('li.vsm--item');
+    if (menuLink && !menuLink.classList.contains(LINK_ACTIVE_CLASS)) {
+      menuLink.classList.add(LINK_ACTIVE_CLASS);
+    }
+    this.showEcryptionKey = false;
+
+    this.$store.dispatch('setActiveResource', item.idx);
+  }
+
+  isIconDeleteCkick(event: PointerEvent): boolean {
+    //@ts-ignore
+    return event.srcElement.className === 'vsm--badge';
+  }
+
+  isIconClick(event: PointerEvent): boolean {
+    //@ts-ignore
+    return event.srcElement.className === 'vsm--icon' || event.srcElement.className instanceof SVGAnimatedString;
+  }
+
+  onResize() {
+    if (window.innerWidth <= 767) {
+      this.isOnMobile = true
+      this.collapsed = true
+    } else {
+      this.isOnMobile = false
+      this.collapsed = false
+    }
+  }
+
+  get menu(): Array<Object> {
+    const resources = this.$store.getters.getResources;
+    const result = Menu.getDefaultMenu();
+
+    if (resources === undefined) {
+      return result;
+    }
+    const tmp = result.concat(
+        resources.map(
+            (el: Resource, idx: number) => <MenuElement><unknown>Menu.addMenuElementFromResource(el, idx)
+        )
+    );
+    return tmp;
+  }
+
+  get isAuthorized(): boolean {
+    return this.$store.getters.isLoggedIn;
+  }
+
+  get sidebarMaxHeight(): number {
+    return window.innerHeight;
+  }
+
+}
+
+</script>
 <template>
     <div v-if="isAuthorized">
         <sidebar-menu v-model:collapsed="collapsed" :menu="menu" :link-component-name="'sidebar-menu-link'"
@@ -19,124 +135,6 @@
     <login-form v-if="!isAuthorized" />
 
 </template>
-
-<script lang="ts">
-import SidebarMenuLink from './components/SidebarMenuLink.vue'
-import LoginForm from './components/LoginForm.vue'
-import Modal from './components/Modal.vue'
-import IconPicker from './components/IconPicker.vue'
-import Editor from './components/Editor.vue'
-import EncryptionKeyEditor from './components/EncryptionKeyEditor.vue'
-import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
-import { Component, Vue } from 'vue-facing-decorator'
-import axios from 'axios'
-import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } from './models/data/menu'
-
-axios.defaults.withCredentials = true;
-
-const LINK_ACTIVE_CLASS = 'link-active';
-
-@Component({ components: { SidebarMenuLink, Editor, LoginForm, EncryptionKeyEditor, Modal, IconPicker } })
-export default class App extends Vue {
-    collapsed = false;
-    isOnMobile = false;
-    showEcryptionKey = false;
-
-    modalX = 0;
-    modalY = 0;
-
-    onToggleCollapse(collapsed: boolean) {
-        collapsed = collapsed;
-        console.log('onToggleCollapse', collapsed)
-    }
-
-    get isModalVisible(): boolean {
-        return this.$store.getters.isIconPickerVisible;
-    }
-
-    onItemClick(event: PointerEvent, item: MenuElement) {
-        //@ts-ignore
-        if (this.isIconClick(event)) {
-            console.log('onItemClick target->svg', event.x, event.y);
-            this.$store.dispatch('setIconPickerVisible', true);
-            this.modalX = event.x;
-            this.modalY = event.y;
-            this.$store.dispatch('setIconPickerIndex', item.idx);
-            return;
-        }
-        if (this.isIconDeleteCkick(event)) {
-            this.$store.dispatch('deleteResource', item.idx);
-            return;
-        }
-        this.$store.dispatch('setIconPickerVisible', false);
-        if (item.idx === MENU_INDEX_NEW_ITEM) {
-            this.showEcryptionKey = false;
-            this.$store.dispatch('addResource');
-            setTimeout(() => document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
-            return;
-        }
-        document.querySelector('.link-active')?.classList.remove(LINK_ACTIVE_CLASS);
-        if (item.idx === MENU_INDEX_ENCRYPTION_KEY) {
-            console.log('onItemClick', item.idx);
-            this.showEcryptionKey = true;
-            return;
-        }
-        const menuLink = (event.target as Element).closest('li.vsm--item');
-        if (menuLink && !menuLink.classList.contains(LINK_ACTIVE_CLASS)) {
-            menuLink.classList.add(LINK_ACTIVE_CLASS);
-        }
-        this.showEcryptionKey = false;
-
-        this.$store.dispatch('setActiveResource', item.idx);
-    }
-
-    isIconDeleteCkick(event: PointerEvent): boolean {
-        //@ts-ignore
-        return event.srcElement.className === 'vsm--badge';
-    }
-
-    isIconClick(event: PointerEvent): boolean {
-        //@ts-ignore
-        return event.srcElement.className === 'vsm--icon' || event.srcElement.className instanceof SVGAnimatedString;
-    }
-
-    onResize() {
-        if (window.innerWidth <= 767) {
-            this.isOnMobile = true
-            this.collapsed = true
-        } else {
-            this.isOnMobile = false
-            this.collapsed = false
-        }
-    }
-
-    get menu(): Array<Object> {
-        const resources = this.$store.getters.getResources;
-        const result = Menu.getDefaultMenu();
-
-        if (resources === undefined) {
-            return result;
-        }
-        const tmp = result.concat(
-            resources.map(
-                (el: Resource, idx: number) => <MenuElement><unknown>Menu.addMenuElementFromResource(el, idx)
-            )
-        );
-        return tmp;
-    }
-
-    get isAuthorized(): boolean {
-        return this.$store.getters.isLoggedIn;
-    }
-
-    get sidebarMaxHeight(): number {
-        return window.innerHeight;
-    }
-
-}
-
-</script>
-
 <style lang="scss">
 @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600');
 

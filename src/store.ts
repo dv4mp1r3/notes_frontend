@@ -72,7 +72,7 @@ const store = createStore({
             state.resources = data.resources.map(res =>  {
                 const resourceData = AES.decrypt(res.data, data.pwd).toString(enc.Utf8);
                 console.log('setResources', resourceData);
-                res.data = resourceData ? resourceData : res.data;
+                res.data = resourceData || res.data;
                 return res;
             });
         },
@@ -113,12 +113,11 @@ const store = createStore({
         setActiveResource({commit}: CommitFunction, idx: number) {
             if (idx >= 0) {
                 commit('setActiveResource', idx);
-                return;
             }
         },
         async saveCurrentResource({commit, getters}: CommitGettersFunction<Getters>, resource: Resource) {
             const client = new ApiClient();
-            const encrDataResource = Object.assign({}, resource);
+            const encrDataResource = {...resource};
             encrDataResource.data = AES.encrypt(resource.data, getters.getEncryptionKey).toString();
             const res = await client.resource(encrDataResource);
             if (res.id === resource.id) {
@@ -193,7 +192,7 @@ const store = createStore({
         getEncryptionKey(state: State): string
         {
             const val = localStorage.getItem("key");
-            return val === null ? 'INSERT KEY HERE': val;
+            return val ?? 'INSERT KEY HERE';
         },
         isIconPickerVisible(state: State): boolean
         {

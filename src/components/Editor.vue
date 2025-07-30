@@ -40,8 +40,11 @@ export default class Editor extends Vue {
             <button @click="onBtnSaveClick" id="btnSave">Сохранить</button>
         </div>
         <div>
-            <label>Name:</label>
-            <input type="text" v-model="name" />
+            <label>
+              <input type="text" v-model="name" />
+              Name:
+            </label>
+
         </div>
         <textarea v-model="data"></textarea>
     </div>

@@ -2,6 +2,8 @@
 import {createStore, Commit, Getters, Dispatch} from 'vuex'
 import ApiClient from './models/apiClient';
 import {AES, enc} from 'crypto-js';
+import {Resource} from "./models/data/resource.ts";
+import {User} from "./models/data/user.ts";
 
 export interface CommitFunction {
     commit: Commit;
@@ -138,7 +140,7 @@ const store = createStore({
         },
         async setResourceIcon({commit, dispatch, state} : CommitStateDispatchFunction<State, Dispatch> , resourceIcon : ResourceIcon) {
             commit('setResourceIcon', resourceIcon);
-            dispatch('saveCurrentResource', state.resources[resourceIcon.resourceIndex]);
+            await dispatch('saveCurrentResource', state.resources[resourceIcon.resourceIndex]);
         },
         setIconPickerIndex({commit} : CommitFunction, idx: number) {
             commit('setIconPickerIndex', idx);

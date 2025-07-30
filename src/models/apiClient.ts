@@ -1,4 +1,5 @@
 import axios from "axios";
+import {Resource} from "./data/resource.ts";
 
 const host = import.meta.env.VITE_BACKEND_URL;
 

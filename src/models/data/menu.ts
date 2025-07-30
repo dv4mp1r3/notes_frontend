@@ -16,6 +16,7 @@ import {
     faPlus,
     faKey
 } from '@fortawesome/free-solid-svg-icons'
+import {Resource} from "./resource.ts";
 
 library.add(
     faDownload,

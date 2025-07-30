@@ -1,6 +1,5 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-facing-decorator'
-import Auth from './../models/auth'
 import ApiClient from '../models/apiClient';
 import EncryptionKeyEditor from './EncryptionKeyEditor.vue';
 
@@ -10,8 +9,6 @@ export default class LoginForm extends Vue {
   login: string | undefined;
   password: string | undefined;
   loginError = false;
-
-  auth = new Auth();
 
   async tryLogin() {
     const client = new ApiClient();

@@ -7,7 +7,7 @@ services:
       target: prod
       args:
         - VITE_BACKEND_URL=${VITE_BACKEND_URL}
-    container_name: frontend
+    container_name: notes-frontend
     environment:
       - NGINX_HOST=${NGINX_HOST}
     depends_on:
@@ -21,6 +21,7 @@ services:
   backend:
     restart: always
     image: dv4mp1r3/notes-backend
+    container_name: notes-backend
     environment:
       - SALT=${SALT}
       - API_PREFIX=${API_PREFIX}

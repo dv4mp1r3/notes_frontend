@@ -1,5 +1,6 @@
 services:
   frontend:
+    image: dv4mp1r3/notes-frontend
     restart: always
     build:
       context: ./
@@ -19,7 +20,7 @@ services:
       - ./nginx.conf.template:/etc/nginx/templates/frontend.conf.template
   backend:
     restart: always
-    image: dvp-notes-backend:1
+    image: dv4mp1r3/notes-backend
     environment:
       - SALT=${SALT}
       - API_PREFIX=${API_PREFIX}
@@ -29,6 +30,8 @@ services:
       - notes
     volumes:
       - "${DB_PATH}:/usr/go/db"
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
 networks:
   notes:
     driver: bridge

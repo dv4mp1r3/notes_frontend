@@ -1,8 +1,6 @@
 FROM node:20.16.0-alpine3.20 AS stage-build
 WORKDIR /home/node/app
 ENV PATH /home/node/app/node_modules/.bin:$PATH
-ARG VITE_BACKEND_URL
-ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 COPY package.json package-lock.json ./
 RUN npm install
 
@@ -11,6 +9,8 @@ COPY --from=stage-build /home/node/app/node_modules /home/node/app/node_modules
 
 FROM pre-builder AS prod-builder
 WORKDIR /home/node/app
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 COPY src/ ./src/
 COPY public/ ./public/
 COPY index.html tsconfig.json tsconfig.node.json vite.config.ts ./

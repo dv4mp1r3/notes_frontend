@@ -1,3 +1,40 @@
+<script lang="ts">
+import { Component, Vue } from 'vue-facing-decorator'
+import ApiClient from '../models/apiClient';
+import EncryptionKeyEditor from './EncryptionKeyEditor.vue';
+
+@Component({ components: { EncryptionKeyEditor } })
+export default class LoginForm extends Vue {
+
+  login: string | undefined;
+  password: string | undefined;
+  loginError = false;
+
+  async tryLogin() {
+    const client = new ApiClient();
+    const authenticated = await client.login(this.login as string, this.password as string);
+    if (!authenticated) {
+      this.loginError = true;
+    } else {
+      await this.$store.dispatch('updateUser', {username: this.login, password: this.password});
+      const resources = await client.resources();
+      await this.$store.dispatch('setResources', {resources, pwd: this.$store.getters.getEncryptionKey});
+      await this.$store.dispatch('setActiveResource', resources.length > 0 ? 0 : -1);
+    }
+  }
+
+  async onFormSubmit(e: any) {
+    e.preventDefault();
+    await this.tryLogin();
+  }
+
+  async onBtnLoginClick() {
+    await this.tryLogin();
+    this.$emit('onBtnLoginClick', !this.loginError);
+  }
+}
+
+</script>
 <template>
     <form v-on:submit="onFormSubmit">
         <div class="login-form">
@@ -11,46 +48,6 @@
         </div>
     </form>
 </template>
-<script lang="ts">
-import { Component, Vue } from 'vue-facing-decorator'
-import Auth from './../models/auth'
-import ApiClient from '../models/apiClient';
-import EncryptionKeyEditor from './EncryptionKeyEditor.vue';
-
-@Component({ components: { EncryptionKeyEditor } })
-export default class LoginForm extends Vue {
-
-    login: string | undefined;
-    password: string | undefined;
-    loginError = false;
-
-    auth = new Auth();
-
-    async tryLogin() {
-        const client = new ApiClient();
-        const authenticated = await client.login(this.login as string, this.password as string);
-        if (!authenticated) {
-            this.loginError = true;
-        } else {
-            this.$store.dispatch('updateUser', { username: this.login, password: this.password });
-            const resources = await client.resources();
-            this.$store.dispatch('setResources', { resources, pwd: this.$store.getters.getEncryptionKey });
-            this.$store.dispatch('setActiveResource', resources.length > 0 ? 0 : -1);
-        }
-    }
-
-    async onFormSubmit(e: any) {
-        e.preventDefault();
-        await this.tryLogin();
-    }
-
-    async onBtnLoginClick() {
-        await this.tryLogin();
-        this.$emit('onBtnLoginClick', !this.loginError);
-    }
-}
-
-</script>
 <style lang="scss">
 .login-form {
     display: flex;

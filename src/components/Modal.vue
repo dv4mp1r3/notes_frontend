@@ -1,3 +1,27 @@
+<script lang="ts">
+import { Component, Prop, Vue } from 'vue-facing-decorator'
+
+@Component
+export default class Modal extends Vue {
+  @Prop
+  x = 0;
+
+  @Prop
+  y = 0;
+
+  @Prop
+  width = 100;
+
+  @Prop
+  height = 100;
+
+  modalWrapperClick() {
+    console.log('modalWrapperClick', this.x, this.y);
+    this.$store.dispatch('setIconPickerVisible', false);
+  }
+}
+
+</script>
 <template>
     <div @click="modalWrapperClick" className="modal__wrapper">
         <div className="modal" :style="{
@@ -10,30 +34,6 @@
         </div>
     </div>
 </template>
-<script lang="ts">
-import { Component, Prop, Vue } from 'vue-facing-decorator'
-
-@Component
-export default class Modal extends Vue {
-    @Prop
-    x = 0;
-
-    @Prop
-    y = 0;
-
-    @Prop
-    width = 100;
-
-    @Prop
-    height = 100;
-
-    modalWrapperClick() {
-        console.log('modalWrapperClick', this.x, this.y);
-        this.$store.dispatch('setIconPickerVisible', false);
-    }
-}
-
-</script>
 <style lang="scss" scoped>
 .modal {
     border-radius: 10px;

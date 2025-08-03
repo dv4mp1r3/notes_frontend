@@ -1,30 +1,19 @@
-<template>
-    <div class="icon-picker">
-        <div class="icon-grid">
-            <div v-for="icons in rows" class="icons-row">
-                <font-awesome-icon v-for="icon in icons" class="icon-item" @click="selectIcon(icon)"
-                    :icon="`fa-solid ${icon.class}`" />
-            </div>
-        </div>
-    </div>
-</template>
-
 <script lang="ts">
 
 import { Component, Vue } from 'vue-facing-decorator';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
-    faUserSecret,
-    faStar,
-    faHeart,
-    faMoon,
-    faSun,
-    faCloud,
-    faSnowflake,
-    faBell,
-    faEnvelope,
-    faComments
+  faUserSecret,
+  faStar,
+  faHeart,
+  faMoon,
+  faSun,
+  faCloud,
+  faSnowflake,
+  faBell,
+  faEnvelope,
+  faComments
 } from '@fortawesome/free-solid-svg-icons'
 import { ResourceIcon } from '../store';
 
@@ -42,43 +31,55 @@ library.add(
 );
 
 interface Icon {
-    name: string;
-    class: string;
+  name: string;
+  class: string;
 }
 
 @Component({ components: { FontAwesomeIcon } })
 export default class IconPicker extends Vue {
-    rows = [
-        [
-            { name: 'icon1', class: 'fa-star' },
-            { name: 'icon2', class: 'fa-heart' },
-            { name: 'icon3', class: 'fa-moon' },
-        ],
-        [
-            { name: 'icon4', class: 'fa-sun' },
-            { name: 'icon5', class: 'fa-cloud' },
-            { name: 'icon6', class: 'fa-snowflake' },
-        ],
-        [
-            { name: 'icon7', class: 'fa-bell' },
-            { name: 'icon8', class: 'fa-envelope' },
-            { name: 'icon9', class: 'fa-comments' },
-        ],
-    ];
+  rows = [
+    [
+      { name: 'icon1', class: 'fa-star' },
+      { name: 'icon2', class: 'fa-heart' },
+      { name: 'icon3', class: 'fa-moon' },
+    ],
+    [
+      { name: 'icon4', class: 'fa-sun' },
+      { name: 'icon5', class: 'fa-cloud' },
+      { name: 'icon6', class: 'fa-snowflake' },
+    ],
+    [
+      { name: 'icon7', class: 'fa-bell' },
+      { name: 'icon8', class: 'fa-envelope' },
+      { name: 'icon9', class: 'fa-comments' },
+    ],
+  ];
 
-    selectIcon(icon: Icon) {
-        console.log('selectIcon', icon.class);
-        const idx = this.$store.getters.getIconPickerIndex;
-        if (idx === undefined) {
-            return;
-        }
-        const data: ResourceIcon = { iconClass: icon.class, resourceIndex: idx };
-        this.$store.dispatch('setResourceIcon', data);
-        this.$emit('select', icon);
+  selectIcon(icon: Icon) {
+    console.log('selectIcon', icon.class);
+    const idx = this.$store.getters.getIconPickerIndex;
+    if (idx === undefined) {
+      return;
     }
+    const data: ResourceIcon = { iconClass: icon.class, resourceIndex: idx };
+    this.$store.dispatch('setResourceIcon', data);
+    this.$emit('select', icon);
+  }
 }
 
 </script>
+
+<template>
+    <div class="icon-picker">
+        <div class="icon-grid">
+            <div v-for="icons in rows" class="icons-row">
+                <font-awesome-icon v-for="icon in icons" class="icon-item" @click="selectIcon(icon)"
+                    :icon="`fa-solid ${icon.class}`" />
+            </div>
+        </div>
+    </div>
+</template>
+
 
 <style scoped>
 .icon-picker {

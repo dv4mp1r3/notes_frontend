@@ -2,7 +2,7 @@
 import {createStore, Commit, Getters, Dispatch} from 'vuex'
 import ApiClient from './models/apiClient';
 import {AES, enc} from 'crypto-js';
-import {Resource} from "./models/data/resource.ts";
+import {Category, Resource, SetResourceCategory} from "./models/data/resource.ts";
 import {User} from "./models/data/user.ts";
 
 export interface CommitFunction {
@@ -24,8 +24,9 @@ export interface CommitGettersFunction<T> extends CommitFunction {
 
 export type State = {
     user: User | null;
-    resources: Array<Resource>;
+    categories: Map<number, Category>;
     activeResourceIndex: number;
+    activeCategoryIndex: number;
     isIconPickerVisible: boolean;
     iconPickerIndex: number|undefined;
 }
@@ -37,15 +38,21 @@ export type ResourceIcon = {
 }
 
 export type SetResourceData = {
-    resources: Array<Resource>;
+    categories: Array<SetResourceCategory>;
     pwd: string;
+}
+
+export type ResourceIndexes = {
+    categoryIdx: number,
+    resourceIdx: number,
 }
 
 const store = createStore({
     state: <State>{
         user: null,
         activeResourceIndex: -1,
-        resources: [],
+        activeCategoryIndex: -1,
+        categories: new Map<number, Category>(),
         isIconPickerVisible: false,
         iconPickerIndex: undefined
     },
@@ -60,41 +67,45 @@ const store = createStore({
                 data: '',
                 icon: 'fa-code'
             };
-            const idx = state.resources.push(res) - 1;
-            state.resources[idx].name = `Resource №${idx}`;
+            const idx = state.categories.push(res) - 1;
+            state.categories[idx].name = `Resource №${idx}`;
             state.activeResourceIndex = idx;
         },
         saveCurrentResource(state: State, resource: Resource) {           
-            const idx = state.resources.findIndex(el => el.id === resource.id);
-            state.resources[idx] = resource;
+            const idx = state.categories.findIndex(el => el.id === resource.id);
+            state.categories[idx] = resource;
         },
         setResources(state: State, data: SetResourceData) {
-            state.resources = data.resources.map(res =>  {
-                const resourceData = AES.decrypt(res.data, data.pwd).toString(enc.Utf8);
-                console.log('setResources', resourceData);
-                res.data = resourceData || res.data;
-                return res;
+            data.categories.forEach(c => {
+                const resources = new Map<number, Resource>;
+                c.Resources.forEach(r => {
+                    r.data = AES.decrypt(r.data, data.pwd).toString(enc.Utf8);
+                    resources.set(r.id, r);
+                });
+                state.categories.set(c.id, {Resources: resources, id: c.id, name: c.name, icon: c.icon, userId: c.userId});
             });
+            console.log('setResources', state.categories);
         },
         deleteResource(state: State, resource: Resource) {
-            state.resources = state.resources.filter(el => el.id !== resource.id);
+            state.categories = state.categories.filter(el => el.id !== resource.id);
         },
-        setActiveResource(state: State, idx: number) {
-            console.log('setActiveResource', idx);
-            state.activeResourceIndex = idx;
+        setActiveResource(state: State, resIdx: ResourceIndexes) {
+            console.log('setActiveResource', resIdx);
+            state.activeCategoryIndex = resIdx.categoryIdx;
+            state.activeResourceIndex = resIdx.resourceIdx;
         },
         setCurrentResourceData(state: State, data: string) {
-            state.resources[state.activeResourceIndex].data = data;
+            state.categories[state.activeResourceIndex].data = data;
         },
         setCurrentResourceName(state: State, name: string) {
-            state.resources[state.activeResourceIndex].name = name;
+            state.categories[state.activeResourceIndex].name = name;
         },
         setIconPickerVisible(state: State, visible: boolean) {
             state.isIconPickerVisible = visible;
         },
         setResourceIcon(state: State, resourceIcon: ResourceIcon) {
             console.log('setResourceIcon', resourceIcon);
-            state.resources[resourceIcon.resourceIndex].icon = resourceIcon.iconClass;
+            state.categories[resourceIcon.resourceIndex].icon = resourceIcon.iconClass;
         },
         setIconPickerIndex(state: State, idx: number) {
             state.iconPickerIndex = idx;
@@ -110,9 +121,10 @@ const store = createStore({
         addResource({commit}: CommitFunction) {
             commit('addResource');
         },
-        setActiveResource({commit}: CommitFunction, idx: number) {
-            if (idx >= 0) {
-                commit('setActiveResource', idx);
+        setActiveResource({commit}: CommitFunction, resIdx: ResourceIndexes) {
+            console.log('setActiveResource', resIdx);
+            if (resIdx.resourceIdx >= 0 && resIdx.categoryIdx >= 0) {
+                commit('setActiveResource', resIdx);
             }
         },
         async saveCurrentResource({commit, getters}: CommitGettersFunction<Getters>, resource: Resource) {
@@ -139,13 +151,13 @@ const store = createStore({
         },
         async setResourceIcon({commit, dispatch, state} : CommitStateDispatchFunction<State, Dispatch> , resourceIcon : ResourceIcon) {
             commit('setResourceIcon', resourceIcon);
-            await dispatch('saveCurrentResource', state.resources[resourceIcon.resourceIndex]);
+            await dispatch('saveCurrentResource', state.categories[resourceIcon.resourceIndex]);
         },
         setIconPickerIndex({commit} : CommitFunction, idx: number) {
             commit('setIconPickerIndex', idx);
         },
         async deleteResource({commit, state} : CommitStateFunction<State>, idx: number) {
-            const resource = state.resources[idx];
+            const resource = state.categories[idx];
             if (resource.id <= 0) {
                 return;
             }
@@ -161,8 +173,8 @@ const store = createStore({
         getUser(state: State): User | null {
             return state.user;
         },
-        getResources(state: State): Array<Resource> {
-            return state.resources;
+        getResources(state: State): Map<number, Category> {
+            return state.categories;
         },
         isLoggedIn(state: State): boolean {
             return state.user !== null;
@@ -171,22 +183,37 @@ const store = createStore({
             return state.activeResourceIndex;
         },
         getActiveResourceData(state: State): string {
-            if (state.activeResourceIndex === -1) {
+            if (!state.categories.has(state.activeCategoryIndex)) {
                 return '';
             }
-            return state.resources[state.activeResourceIndex].data;
+            const resources = state.categories.get(state.activeCategoryIndex)?.Resources;
+            if (!resources || !resources.has(state.activeResourceIndex)) {
+                return '';
+            }
+            const resource = resources.get(state.activeResourceIndex);
+            console.log('getActiveResourceData', resource);
+            return resource?.data ?? '';
         },
         getActiveResourceName(state: State): string {
-            if (state.activeResourceIndex === -1) {
+            if (!state.categories.has(state.activeCategoryIndex)) {
                 return '';
             }
-            return state.resources[state.activeResourceIndex].name;
+            const resources = state.categories.get(state.activeCategoryIndex)?.Resources;
+            if (!resources || !resources.has(state.activeResourceIndex)) {
+                return '';
+            }
+            const resource = resources.get(state.activeResourceIndex);
+            return resource?.name ?? '';
         },
         getActiveResource(state: State): Resource|undefined {
-            if (state.activeResourceIndex === -1) {
+            if (!state.categories.has(state.activeCategoryIndex)) {
                 return undefined;
             }
-            return state.resources[state.activeResourceIndex];
+            const resources = state.categories.get(state.activeCategoryIndex)?.Resources;
+            if (!resources || !resources.has(state.activeResourceIndex)) {
+                return undefined;
+            }
+            return resources.get(state.activeResourceIndex);
         },
         //@ts-ignore
         getEncryptionKey(state: State): string
@@ -200,7 +227,7 @@ const store = createStore({
         },
         getActiveResourceIcon(state: State): string
         {
-            return state.resources[state.activeResourceIndex].icon;
+            return state.categories[state.activeResourceIndex].icon;
         },
         getIconPickerIndex(state: State): number|undefined
         {

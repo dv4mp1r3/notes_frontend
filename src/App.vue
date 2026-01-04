@@ -9,7 +9,8 @@ import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import { Component, Vue } from 'vue-facing-decorator'
 import axios from 'axios'
 import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } from './models/data/menu'
-import {Resource} from "./models/data/resource.ts";
+import {Category, Resource} from "./models/data/resource.ts";
+import {ResourceIndexes} from "./store.ts";
 
 axios.defaults.withCredentials = true;
 
@@ -34,6 +35,7 @@ export default class App extends Vue {
   }
 
   onItemClick(event: PointerEvent, item: MenuElement) {
+    console.log('onItemClick called', event, item );
     //@ts-ignore
     if (this.isIconClick(event)) {
       console.log('onItemClick target->svg', event.x, event.y);
@@ -65,8 +67,8 @@ export default class App extends Vue {
       menuLink.classList.add(LINK_ACTIVE_CLASS);
     }
     this.showEcryptionKey = false;
-
-    this.$store.dispatch('setActiveResource', item.idx);
+    console.log('onItemClick', item);
+    this.$store.dispatch('setActiveResource',  <ResourceIndexes>{categoryIdx: item.categoryIdx, resourceIdx: item.idx});
   }
 
   isIconDeleteCkick(event: PointerEvent): boolean {
@@ -92,15 +94,12 @@ export default class App extends Vue {
   get menu(): Array<Object> {
     const resources = this.$store.getters.getResources;
     const result = Menu.getDefaultMenu();
-
     if (resources === undefined) {
       return result;
     }
-    const tmp = result.concat(
-        resources.map(
-            (el: Resource, idx: number) => <MenuElement><unknown>Menu.addMenuElementFromResource(el, idx)
-        )
-    );
+    const categories = new Array<MenuElement>();
+    resources.forEach((el: Category) => categories.push(<MenuElement><unknown>Menu.addCategory(el, el.id)));
+    const tmp = result.concat(categories);
     return tmp;
   }
 

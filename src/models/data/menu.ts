@@ -16,7 +16,7 @@ import {
     faPlus,
     faKey
 } from '@fortawesome/free-solid-svg-icons'
-import {Resource} from "./resource.ts";
+import {Category, Resource} from "./resource.ts";
 
 library.add(
     faDownload,
@@ -46,11 +46,13 @@ export type Badge = {
 }
 
 export type MenuElement = {
-    data: string,
+    data?: string,
     title: string,
     icon: any,
-    idx: number
+    idx: number,
+    categoryIdx?: number,
     badge?: Badge
+    child?: Array<MenuElement>,
 };
 
 export const MENU_INDEX_ENCRYPTION_KEY = -2;
@@ -86,7 +88,7 @@ export default class Menu {
         ]
     }
 
-    static addMenuElementFromResource(res: Resource, idx: number): MenuElement {
+    static addMenuElementFromResource(res: Resource, idx: number, categoryIdx: number): MenuElement {
         if (!iconMap.has(res.icon)) {
             iconMap.set(res.icon, faIcon({ icon: `fa-solid ${res.icon}` }));
         }
@@ -95,9 +97,24 @@ export default class Menu {
             title: res.name,
             icon: iconMap.get(res.icon),
             idx: idx,
+            categoryIdx: categoryIdx,
             badge: {
                 text: '❌',
             }
         }
+    }
+
+    static addCategory(cat: Category, idx: number): MenuElement {
+        const result = <MenuElement>{
+            idx: idx,
+            title: cat.name,
+            icon: iconMap.get(cat.icon),
+            child: [],
+        };
+        const self = this;
+        cat.Resources.forEach((value) =>  {
+            result.child?.push(self.addMenuElementFromResource(value, value.id, idx));
+        });
+        return result;
     }
 }

@@ -17,9 +17,9 @@ export default class LoginForm extends Vue {
       this.loginError = true;
     } else {
       await this.$store.dispatch('updateUser', {username: this.login, password: this.password});
-      const resources = await client.resources();
-      await this.$store.dispatch('setResources', {resources, pwd: this.$store.getters.getEncryptionKey});
-      await this.$store.dispatch('setActiveResource', resources.length > 0 ? 0 : -1);
+      const categories = await client.resources();
+      await this.$store.dispatch('setResources', {categories, pwd: this.$store.getters.getEncryptionKey});
+      //await this.$store.dispatch('setActiveResource', categories.length > 0 ? 0 : -1);
     }
   }
 

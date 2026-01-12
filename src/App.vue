@@ -9,7 +9,7 @@ import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import { Component, Vue } from 'vue-facing-decorator'
 import axios from 'axios'
 import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } from './models/data/menu'
-import {Category, Resource} from "./models/data/resource.ts";
+import {Category} from "./models/data/resource.ts";
 import {ResourceIndexes} from "./store.ts";
 
 axios.defaults.withCredentials = true;
@@ -42,7 +42,7 @@ export default class App extends Vue {
       this.$store.dispatch('setIconPickerVisible', true);
       this.modalX = event.x;
       this.modalY = event.y;
-      this.$store.dispatch('setIconPickerIndex', item.idx);
+      this.$store.dispatch('setIconPickerIndex', <ResourceIndexes>{resourceId: item.idx, categoryId: item.categoryIdx});
       return;
     }
     if (this.isIconDeleteCkick(event)) {
@@ -68,7 +68,7 @@ export default class App extends Vue {
     }
     this.showEcryptionKey = false;
     console.log('onItemClick', item);
-    this.$store.dispatch('setActiveResource',  <ResourceIndexes>{categoryIdx: item.categoryIdx, resourceIdx: item.idx});
+    this.$store.dispatch('setActiveResource',  <ResourceIndexes>{categoryId: item.categoryIdx, resourceId: item.idx});
   }
 
   isIconDeleteCkick(event: PointerEvent): boolean {

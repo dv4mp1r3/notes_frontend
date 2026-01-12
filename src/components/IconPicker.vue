@@ -15,7 +15,7 @@ import {
   faEnvelope,
   faComments
 } from '@fortawesome/free-solid-svg-icons'
-import { ResourceIcon } from '../store';
+import {ResourceIcon, ResourceIndexes} from '../store';
 
 library.add(
     faUserSecret,
@@ -57,11 +57,11 @@ export default class IconPicker extends Vue {
 
   selectIcon(icon: Icon) {
     console.log('selectIcon', icon.class);
-    const idx = this.$store.getters.getIconPickerIndex;
+    const idx = this.$store.getters.getIconPickerIndex as ResourceIndexes;
     if (idx === undefined) {
       return;
     }
-    const data: ResourceIcon = { iconClass: icon.class, resourceIndex: idx };
+    const data: ResourceIcon = { iconClass: icon.class, resourceIndex: idx.resourceId, categoryIndex: idx.categoryId};
     this.$store.dispatch('setResourceIcon', data);
     this.$emit('select', icon);
   }

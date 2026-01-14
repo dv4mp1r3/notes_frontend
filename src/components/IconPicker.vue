@@ -61,7 +61,7 @@ export default class IconPicker extends Vue {
     if (idx === undefined) {
       return;
     }
-    const data: ResourceIcon = { iconClass: icon.class, resourceIndex: idx.resourceId, categoryIndex: idx.categoryId};
+    const data: ResourceIcon = { iconClass: icon.class, resourceKey: idx.resourceId, categoryKey: idx.categoryId};
     this.$store.dispatch('setResourceIcon', data);
     this.$emit('select', icon);
   }

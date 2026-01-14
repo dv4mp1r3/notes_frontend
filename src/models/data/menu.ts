@@ -45,12 +45,18 @@ export type Badge = {
     class?: string
 }
 
+export enum MenuType {
+    CATEGORY,
+    RESOURCE,
+}
+
 export type MenuElement = {
     data?: string,
     title: string,
     icon: any,
     idx: number,
-    categoryIdx?: number,
+    type: MenuType,
+    categoryIdx: number,
     badge?: Badge
     child?: Array<MenuElement>,
 };
@@ -100,7 +106,8 @@ export default class Menu {
             categoryIdx: categoryIdx,
             badge: {
                 text: '❌',
-            }
+            },
+            type: MenuType.RESOURCE
         }
     }
 
@@ -110,6 +117,11 @@ export default class Menu {
             title: cat.name,
             icon: iconMap.get(cat.icon),
             child: [],
+            badge: {
+                text: '❌',
+            },
+            type: MenuType.CATEGORY,
+            categoryIdx: -1,
         };
         const self = this;
         cat.Resources.forEach((value) =>  {

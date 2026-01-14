@@ -2,7 +2,7 @@
 import { Component, Vue, Prop } from 'vue-facing-decorator'
 
 @Component
-export default class Editor extends Vue {
+export default class ResourceEditor extends Vue {
 
   @Prop
   minHeight: number = 640;

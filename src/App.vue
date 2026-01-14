@@ -3,12 +3,13 @@ import SidebarMenuLink from './components/SidebarMenuLink.vue'
 import LoginForm from './components/LoginForm.vue'
 import Modal from './components/Modal.vue'
 import IconPicker from './components/IconPicker.vue'
-import Editor from './components/Editor.vue'
+import ResourceEditor from './components/ResourceEditor.vue'
+import CategoryEditor  from './components/CategoryEditor.vue'
 import EncryptionKeyEditor from './components/EncryptionKeyEditor.vue'
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
-import { Component, Vue } from 'vue-facing-decorator'
+import {Component, Vue} from 'vue-facing-decorator'
 import axios from 'axios'
-import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } from './models/data/menu'
+import Menu, {MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement, MenuType} from './models/data/menu'
 import {Category} from "./models/data/resource.ts";
 import {ResourceIndexes} from "./store.ts";
 
@@ -16,7 +17,7 @@ axios.defaults.withCredentials = true;
 
 const LINK_ACTIVE_CLASS = 'link-active';
 
-@Component({ components: { SidebarMenuLink, Editor, LoginForm, EncryptionKeyEditor, Modal, IconPicker } })
+@Component({ components: {CategoryEditor, SidebarMenuLink, ResourceEditor, LoginForm, EncryptionKeyEditor, Modal, IconPicker } })
 export default class App extends Vue {
   collapsed = false;
   isOnMobile = false;
@@ -34,8 +35,17 @@ export default class App extends Vue {
     return this.$store.getters.isIconPickerVisible;
   }
 
+  get showResourceEditor(): boolean {
+    return !this.showEcryptionKey && this.$store.getters.isActiveElementResource;
+  }
+
+  get showCategoryEditor(): boolean {
+    return !this.showEcryptionKey && !this.$store.getters.isActiveElementResource;
+  }
+
   onItemClick(event: PointerEvent, item: MenuElement) {
     console.log('onItemClick called', event, item );
+    this.$store.dispatch('setActiveResource',  item);
     //@ts-ignore
     if (this.isIconClick(event)) {
       console.log('onItemClick target->svg', event.x, event.y);
@@ -46,13 +56,13 @@ export default class App extends Vue {
       return;
     }
     if (this.isIconDeleteCkick(event)) {
-      this.$store.dispatch('deleteResource', item.idx);
+      this.$store.dispatch(item.type as MenuType === MenuType.CATEGORY ? 'deleteCategory' : 'deleteResource', item.idx);
       return;
     }
     this.$store.dispatch('setIconPickerVisible', false);
     if (item.idx === MENU_INDEX_NEW_ITEM) {
       this.showEcryptionKey = false;
-      this.$store.dispatch('addResource');
+      this.$store.dispatch(item.type as MenuType === MenuType.CATEGORY ? 'addCategory' : 'addResource');
       setTimeout(() => document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
       return;
     }
@@ -68,7 +78,7 @@ export default class App extends Vue {
     }
     this.showEcryptionKey = false;
     console.log('onItemClick', item);
-    this.$store.dispatch('setActiveResource',  <ResourceIndexes>{categoryId: item.categoryIdx, resourceId: item.idx});
+
   }
 
   isIconDeleteCkick(event: PointerEvent): boolean {
@@ -117,13 +127,14 @@ export default class App extends Vue {
 <template>
     <div v-if="isAuthorized">
         <sidebar-menu v-model:collapsed="collapsed" :menu="menu" :link-component-name="'sidebar-menu-link'"
-            :show-one-child="true" @update:collapsed="onToggleCollapse" @item-click="onItemClick"
+            :show-one-child="false" @update:collapsed="onToggleCollapse" @item-click="onItemClick"
             :style="[{ 'max-height': `${sidebarMaxHeight}px` }]" />
         <div v-if="isOnMobile && !collapsed" class="sidebar-overlay" @click="collapsed = true" />
         <div id="demo" :class="[{ collapsed: collapsed }, { onmobile: isOnMobile }]">
             <div class="demo">
                 <div class="container">
-                    <editor v-if="!showEcryptionKey" />
+                    <resource-editor v-if="showResourceEditor" />
+                    <category-editor v-if="showCategoryEditor" />
                     <encryption-key-editor v-if="showEcryptionKey" />
                 </div>
             </div>

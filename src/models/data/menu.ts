@@ -54,12 +54,14 @@ export type MenuElement = {
     data?: string,
     title: string,
     icon: any,
-    idx: number,
+    resourceId: number,
     type: MenuType,
-    categoryIdx: number,
+    categoryId: number,
     badge?: Badge
     child?: Array<MenuElement>,
 };
+
+//todo: define default icon
 
 export const MENU_INDEX_ENCRYPTION_KEY = -2;
 export const MENU_INDEX_NEW_ITEM = -1;
@@ -94,16 +96,16 @@ export default class Menu {
         ]
     }
 
-    static addMenuElementFromResource(res: Resource, idx: number, categoryIdx: number): MenuElement {
+    static addMenuElementFromResource(res: Resource, idx: number, categoryId: number): MenuElement {
         if (!iconMap.has(res.icon)) {
             iconMap.set(res.icon, faIcon({ icon: `fa-solid ${res.icon}` }));
         }
-        return {
+        return <MenuElement>{
             data: res.data,
             title: res.name,
             icon: iconMap.get(res.icon),
-            idx: idx,
-            categoryIdx: categoryIdx,
+            resourceId: idx,
+            categoryId: categoryId,
             badge: {
                 text: '❌',
             },
@@ -111,9 +113,9 @@ export default class Menu {
         }
     }
 
-    static addCategory(cat: Category, idx: number): MenuElement {
+    static addCategory(cat: Category, categoryId: number): MenuElement {
         const result = <MenuElement>{
-            idx: idx,
+            resourceId: -1,
             title: cat.name,
             icon: iconMap.get(cat.icon),
             child: [],
@@ -121,11 +123,11 @@ export default class Menu {
                 text: '❌',
             },
             type: MenuType.CATEGORY,
-            categoryIdx: -1,
+            categoryId: categoryId,
         };
         const self = this;
         cat.Resources.forEach((value) =>  {
-            result.child?.push(self.addMenuElementFromResource(value, value.id, idx));
+            result.child?.push(self.addMenuElementFromResource(value, value.id, categoryId));
         });
         return result;
     }

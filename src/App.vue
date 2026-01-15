@@ -52,23 +52,23 @@ export default class App extends Vue {
       this.$store.dispatch('setIconPickerVisible', true);
       this.modalX = event.x;
       this.modalY = event.y;
-      this.$store.dispatch('setIconPickerIndex', <ResourceIndexes>{resourceId: item.idx, categoryId: item.categoryIdx});
+      this.$store.dispatch('setIconPickerIndex', <ResourceIndexes>{resourceId: item.resourceId, categoryId: item.categoryId});
       return;
     }
     if (this.isIconDeleteCkick(event)) {
-      this.$store.dispatch(item.type as MenuType === MenuType.CATEGORY ? 'deleteCategory' : 'deleteResource', item.idx);
+      this.$store.dispatch(item.type as MenuType === MenuType.CATEGORY ? 'deleteCategory' : 'deleteResource', item.resourceId);
       return;
     }
     this.$store.dispatch('setIconPickerVisible', false);
-    if (item.idx === MENU_INDEX_NEW_ITEM) {
+    if (item.resourceId === MENU_INDEX_NEW_ITEM) {
       this.showEcryptionKey = false;
       this.$store.dispatch(item.type as MenuType === MenuType.CATEGORY ? 'addCategory' : 'addResource');
       setTimeout(() => document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
       return;
     }
     document.querySelector('.link-active')?.classList.remove(LINK_ACTIVE_CLASS);
-    if (item.idx === MENU_INDEX_ENCRYPTION_KEY) {
-      console.log('onItemClick', item.idx);
+    if (item.resourceId === MENU_INDEX_ENCRYPTION_KEY) {
+      console.log('onItemClick', item.resourceId);
       this.showEcryptionKey = true;
       return;
     }

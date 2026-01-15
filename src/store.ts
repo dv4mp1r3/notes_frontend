@@ -4,7 +4,7 @@ import ApiClient from './models/apiClient';
 import {AES, enc} from 'crypto-js';
 import {Category, Resource, SetResourceCategory} from "./models/data/resource.ts";
 import {User} from "./models/data/user.ts";
-import {MenuElement, MenuType} from "./models/data/menu.ts";
+import Menu, {MenuElement, MenuType} from "./models/data/menu.ts";
 
 export interface CommitFunction {
     commit: Commit;
@@ -25,12 +25,10 @@ export interface CommitGettersFunction<T> extends CommitFunction {
 
 export type State = {
     user: User | null;
+    activeItem: MenuElement | undefined;
     categories: Map<number, Category>;
-    activeResourceKey: number;
-    activeCategoryKey: number;
     isIconPickerVisible: boolean;
     iconPickerData: ResourceIndexes | undefined;
-    isActiveElementCategory: boolean;
 }
 
 
@@ -53,12 +51,9 @@ export type ResourceIndexes = {
 const store = createStore({
     state: <State>{
         user: null,
-        activeResourceKey: -1,
-        activeCategoryKey: -1,
         categories: new Map<number, Category>(),
         isIconPickerVisible: false,
         iconPickerData: undefined,
-        isActiveElementCategory: false,
     },
     mutations: {
         setUser(state: State, user: User) {
@@ -68,38 +63,23 @@ const store = createStore({
           //todo: implement
         },
         addResource(state: State) {            
+
+            const category = state.categories.get(state.activeItem?.categoryId);
+            //@ts-ignore
+            const resourceKeys = new Array(category.Resources.keys());
+            const lastResourceKey = Number.parseInt(resourceKeys.sort()[resourceKeys.length - 1].toString()) + 1;
             const res: Resource = {
-                id: 0,
-                name: '',
+                id: lastResourceKey,
+                name: `Resource №${lastResourceKey}`,
                 data: '',
                 icon: 'fa-code'
             };
-            if (!state.categories.has(state.activeCategoryKey)) {
-                console.error('addResource index error', state.activeCategoryKey)
-                return;
-            }
-            const category = state.categories.get(state.activeCategoryKey);
-            if (category === undefined) {
-                return;
-            }
-            //@ts-ignore
-            const resourceKeys = new Array(state.categories.get(state.activeCategoryKey).Resources.keys());
-            const lastResourceKey = Number.parseInt(resourceKeys.sort()[resourceKeys.length - 1].toString()) + 1;
-            res.name = `Resource №${lastResourceKey}`;
-            category.Resources.set(lastResourceKey, res);
-            state.activeResourceKey = lastResourceKey;
+            category?.Resources.set(lastResourceKey, res);
+
+            state.activeItem = Menu.addMenuElementFromResource(res, lastResourceKey, category?.id);
         },
         saveCurrentResource(state: State, resource: Resource) {
-            if (!state.categories.has(state.activeCategoryKey)) {
-                console.error('saveCurrentResource index error', state.activeCategoryKey)
-                return;
-            }
-            const category = state.categories.get(state.activeCategoryKey);
-            if (category === undefined) {
-                return;
-            }
-            //@ts-ignore
-            state.categories.get(state.activeCategoryKey).Resources.set(state.activeResourceKey, resource);
+            state.categories.get(state.activeItem?.categoryId).Resources.set(state.activeItem?.resourceId, resource);
         },
         setResources(state: State, data: SetResourceData) {
             data.categories.forEach(c => {
@@ -118,30 +98,23 @@ const store = createStore({
         },
         setActiveResource(state: State, item: MenuElement) {
             console.log('setActiveResource', item);
-            state.activeResourceKey = item.idx;
-            if (item.type === MenuType.CATEGORY) {
-                state.isActiveElementCategory = true;
-                state.activeCategoryKey = -1;
-            } else {
-                state.isActiveElementCategory = false;
-                state.activeCategoryKey = item.categoryIdx;
-            }
+            state.activeItem = item;
         },
         setCurrentResourceData(state: State, data: string) {
-            state.categories!.get(state.activeCategoryKey)!.Resources.get(state.activeResourceKey)!.data = data;
+            state.categories!.get(state.activeItem?.categoryId)!.Resources.get(state.activeItem?.resourceId)!.data = data;
         },
         setCurrentResourceName(state: State, name: string) {
-            state.categories!.get(state.activeCategoryKey)!.Resources.get(state.activeResourceKey)!.name = name;
+            state.categories!.get(state.activeItem?.categoryId)!.Resources.get(state.activeItem?.resourceId)!.name = name;
         },
         setIconPickerVisible(state: State, visible: boolean) {
             state.isIconPickerVisible = visible;
         },
         setResourceIcon(state: State, resourceIcon: ResourceIcon) {
             console.log('setResourceIcon', resourceIcon);
-            const resource = { ...state.categories!.get(state.activeCategoryKey)!.Resources.get(state.activeResourceKey)};
+            const resource = { ...state.categories!.get(state.activeItem?.categoryId)!.Resources.get(state.activeItem?.resourceId)};
             if (resource.icon) {
                 resource.icon = resourceIcon.iconClass;
-                state.categories!.get(state.activeCategoryKey)!.Resources.set(state.activeResourceKey, resource as Resource);
+                state.categories!.get(state.activeItem?.categoryId)!.Resources.set(state.activeItem?.resourceId, resource as Resource);
             }
         },
         setIconPickerIndex(state: State, data: ResourceIndexes) {
@@ -163,7 +136,7 @@ const store = createStore({
         },
         setActiveResource({commit}: CommitFunction, item: MenuElement) {
             console.log('setActiveResource', item);
-            if (item.idx >= 0) {
+            if (item.resourceId >= 0 || item.categoryId >= 0) {
                 commit('setActiveResource', item);
             }
         },
@@ -191,7 +164,7 @@ const store = createStore({
         },
         async setResourceIcon({commit, dispatch, state} : CommitStateDispatchFunction<State, Dispatch> , resourceIcon : ResourceIcon) {
             commit('setResourceIcon', resourceIcon);
-            await dispatch('saveCurrentResource', state.categories?.get(state.activeCategoryKey)?.Resources.get(state.activeResourceKey));
+            await dispatch('saveCurrentResource', state.categories?.get(state.activeItem?.categoryId)?.Resources.get(state.activeItem?.idx));
         },
         setIconPickerIndex({commit} : CommitFunction, data: ResourceIndexes) {
             commit('setIconPickerIndex', data);
@@ -219,46 +192,22 @@ const store = createStore({
         isLoggedIn(state: State): boolean {
             return state.user !== null;
         },
-        getActiveResourceIndex(state: State): number {
-            return state.activeResourceKey;
+        getActiveResourceIndex(state: State): number|undefined {
+            return state.activeItem?.resourceId;
         },
         getActiveResourceData(state: State): string {
-            if (!state.categories.has(state.activeCategoryKey)) {
-                return '';
-            }
-            const resources = state.categories.get(state.activeCategoryKey)?.Resources;
-            if (!resources || !resources.has(state.activeResourceKey)) {
-                return '';
-            }
-            const resource = resources.get(state.activeResourceKey);
-            console.log('getActiveResourceData', resource);
-            return resource?.data ?? '';
+            return state.categories?.get(state?.activeItem?.categoryId)?.Resources?.get(state?.activeItem?.resourceId)?.data ?? '';
         },
         getActiveResourceName(state: State): string {
-            if (state.isActiveElementCategory) {
-                return state.categories?.get(state.activeResourceKey)?.name ?? '';
+            if (state.activeItem?.type === MenuType.CATEGORY) {
+                return state.categories?.get(state?.activeItem?.categoryId)?.name ?? '';
             } else {
-                if (!state.categories.has(state.activeCategoryKey)) {
-                    return '';
-                }
-                const resources = state.categories.get(state.activeCategoryKey)?.Resources;
-                if (!resources || !resources.has(state.activeResourceKey)) {
-                    return '';
-                }
-                const resource = resources.get(state.activeResourceKey);
-                return resource?.name ?? '';
+                return state.categories?.get(state?.activeItem?.categoryId)?.Resources?.get(state?.activeItem?.resourceId)?.name ?? '';
             }
 
         },
         getActiveResource(state: State): Resource|undefined {
-            if (!state.categories.has(state.activeCategoryKey)) {
-                return undefined;
-            }
-            const resources = state.categories.get(state.activeCategoryKey)?.Resources;
-            if (!resources || !resources.has(state.activeResourceKey)) {
-                return undefined;
-            }
-            return resources.get(state.activeResourceKey);
+            return state.categories?.get(state?.activeItem?.categoryId)?.Resources?.get(state?.activeItem?.resourceId);
         },
         //@ts-ignore
         getEncryptionKey(state: State): string
@@ -272,7 +221,7 @@ const store = createStore({
         },
         getActiveResourceIcon(state: State): string
         {
-            return state.categories?.get(state.activeCategoryKey)?.Resources?.get(state.activeResourceKey)?.icon || '';
+            return state.categories?.get(state?.activeItem?.categoryId)?.Resources?.get(state?.activeItem?.resourceId)?.icon || '';
         },
         getIconPickerIndex(state: State): ResourceIndexes|undefined
         {
@@ -280,11 +229,11 @@ const store = createStore({
         },
         isActiveElementCategory(state: State): boolean
         {
-            return state.isActiveElementCategory;
+            return state?.activeItem?.type === MenuType.CATEGORY ?? false;
         },
         isActiveElementResource(state: State): boolean
         {
-            return !state.isActiveElementCategory;
+            return state?.activeItem?.type === MenuType.RESOURCE ?? false;
         }
     },
 });

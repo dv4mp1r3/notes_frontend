@@ -131,4 +131,10 @@ export default class Menu {
         });
         return result;
     }
+
+    static setIconByClassName(item: MenuElement, className: string): MenuElement {
+        const result = {...item};
+        result.icon = iconMap.get(className);
+        return result;
+    }
 }

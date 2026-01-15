@@ -45,6 +45,7 @@ export default class App extends Vue {
 
   onItemClick(event: PointerEvent, item: MenuElement) {
     console.log('onItemClick called', event, item );
+
     this.$store.dispatch('setActiveResource',  item);
     //@ts-ignore
     if (this.isIconClick(event)) {
@@ -52,7 +53,8 @@ export default class App extends Vue {
       this.$store.dispatch('setIconPickerVisible', true);
       this.modalX = event.x;
       this.modalY = event.y;
-      this.$store.dispatch('setIconPickerIndex', <ResourceIndexes>{resourceId: item.resourceId, categoryId: item.categoryId});
+      console.log('onItemClick', item);
+      this.$store.dispatch('setIconPickerIndex', item);
       return;
     }
     if (this.isIconDeleteCkick(event)) {

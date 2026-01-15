@@ -5,6 +5,7 @@ import {AES, enc} from 'crypto-js';
 import {Category, Resource, SetResourceCategory} from "./models/data/resource.ts";
 import {User} from "./models/data/user.ts";
 import Menu, {MenuElement, MenuType} from "./models/data/menu.ts";
+import {state} from "vue-tsc/out/shared";
 
 export interface CommitFunction {
     commit: Commit;
@@ -28,7 +29,7 @@ export type State = {
     activeItem: MenuElement | undefined;
     categories: Map<number, Category>;
     isIconPickerVisible: boolean;
-    iconPickerData: ResourceIndexes | undefined;
+    iconPickerItem: MenuElement | undefined;
 }
 
 
@@ -60,7 +61,7 @@ const store = createStore({
         user: null,
         categories: new Map<number, Category>(),
         isIconPickerVisible: false,
-        iconPickerData: undefined,
+        iconPickerItem: undefined,
     },
     mutations: {
         setUser(state: State, user: User) {
@@ -93,6 +94,14 @@ const store = createStore({
             }
             state.categories.get(state.activeItem?.categoryId)?.Resources.set(state.activeItem?.resourceId, resource);
         },
+        saveCurrentCategory(state: State, category: Category) {
+            if (state!.activeItem?.categoryId === undefined) {
+                return;
+            }
+            const oldCategory = state.categories.get(state.activeItem?.categoryId);
+            oldCategory!.id = category.id;
+            state.categories.set(state.activeItem?.categoryId, {...oldCategory} as Category);
+        },
         setResources(state: State, data: SetResourceData) {
             data.categories.forEach(c => {
                 const resources = new Map<number, Resource>;
@@ -116,21 +125,31 @@ const store = createStore({
             getActiveResource(state)!.data = data;
         },
         setCurrentResourceName(state: State, name: string) {
+            if (state!.activeItem?.categoryId === undefined) {
+                return;
+            }
+            state.categories!.get(state!.activeItem?.categoryId)!.name = name;
+        },
+        setCurrentCategoryName(state: State, name: string) {
             getActiveResource(state)!.name = name;
         },
         setIconPickerVisible(state: State, visible: boolean) {
             state.isIconPickerVisible = visible;
         },
-        setResourceIcon(state: State, resourceIcon: ResourceIcon) {
-            console.log('setResourceIcon', resourceIcon);
-            const resource = { ...getActiveResource(state)};
-            if (resource.icon && state!.activeItem?.categoryId !== undefined && state!.activeItem?.resourceId !== undefined) {
-                resource.icon = resourceIcon.iconClass;
-                state.categories!.get(state!.activeItem?.categoryId)!.Resources.set(state!.activeItem?.resourceId, resource as Resource);
-            }
+        setResourceIcon(state: State, item: MenuElement) {
+            console.log('setResourceIcon', item);
+            const resource = { ...state.categories!.get(item.categoryId)!.Resources.get(item.resourceId)};
+            resource.icon = item.icon;
+            state.categories!.get(item.categoryId)!.Resources.set(item.resourceId, resource as Resource);
         },
-        setIconPickerIndex(state: State, data: ResourceIndexes) {
-            state.iconPickerData = data;
+        setCategoryIcon(state: State, item: MenuElement) {
+            console.log('setCategoryIcon', item);
+            const category = { ...state.categories!.get(item.categoryId)};
+            category.icon = item.icon;
+            state.categories!.set(item.categoryId, category as Category);
+        },
+        setIconPickerIndex(state: State, data: MenuElement) {
+            state.iconPickerItem = data;
         }
     },
     actions: {
@@ -161,11 +180,20 @@ const store = createStore({
                 commit('saveCurrentResource', res);
             }
         },
+        async saveCurrentCategory({commit, getters}: CommitGettersFunction<Getters>, category: Category) {
+            //todo: implement
+            if (false) {
+                commit('saveCurrentResource', false);
+            }
+        },
         setCurrentResourceData({commit} : CommitFunction, data: string) {
             commit('setCurrentResourceData', data);
         },
         setCurrentResourceName({commit}: CommitFunction, name: string) {
             commit('setCurrentResourceName', name);
+        },
+        setCurrentCategoryName({commit}: CommitFunction, name: string) {
+            commit('setCurrentCategoryName', name);
         },
         //@ts-ignore
         setEncryptionKey({commit}: CommitFunction, data: string) {
@@ -174,11 +202,16 @@ const store = createStore({
         setIconPickerVisible({commit}: CommitFunction, visible: boolean) {
             commit('setIconPickerVisible', visible);
         },
-        async setResourceIcon({commit, dispatch, state} : CommitStateDispatchFunction<State, Dispatch> , resourceIcon : ResourceIcon) {
-            commit('setResourceIcon', resourceIcon);
-            await dispatch('saveCurrentResource', getActiveResource(state));
+        async setResourceIcon({commit, dispatch, state} : CommitStateDispatchFunction<State, Dispatch> , item : MenuElement) {
+            commit('setResourceIcon', item);
+            await dispatch('saveCurrentResource', state.categories?.get(item.categoryId)?.Resources.get(item.resourceId));
         },
-        setIconPickerIndex({commit} : CommitFunction, data: ResourceIndexes) {
+        async setCategoryIcon({commit, dispatch, state} : CommitStateDispatchFunction<State, Dispatch> , item : MenuElement) {
+            commit('setCategoryIcon', item);
+            await dispatch('saveCurrentCategory', state.categories?.get(item.categoryId));
+        },
+        setIconPickerIndex({commit, state} : CommitStateFunction<State>, data: MenuElement) {
+            const item = state.categories?.get(data.categoryId)?.Resources.get(data.resourceId);
             commit('setIconPickerIndex', data);
         },
         async deleteResource({commit, state} : CommitStateFunction<State>, data: ResourceIndexes) {
@@ -237,7 +270,7 @@ const store = createStore({
         },
         getIconPickerIndex(state: State): ResourceIndexes|undefined
         {
-            return state.iconPickerData;
+            return state.iconPickerItem;
         },
         isActiveElementCategory(state: State): boolean
         {

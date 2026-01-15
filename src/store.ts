@@ -48,6 +48,13 @@ export type ResourceIndexes = {
     categoryId: number,
 }
 
+function getActiveResource(state: State): Resource|undefined {
+    if (state.activeItem?.categoryId === undefined || state.activeItem?.resourceId === undefined) {
+        return undefined;
+    }
+    return state.categories!.get(state.activeItem?.categoryId)!.Resources.get(state.activeItem?.resourceId);
+}
+
 const store = createStore({
     state: <State>{
         user: null,
@@ -62,8 +69,10 @@ const store = createStore({
         addCategory(state: State) {
           //todo: implement
         },
-        addResource(state: State) {            
-
+        addResource(state: State) {
+            if (state!.activeItem?.categoryId === undefined) {
+                return;
+            }
             const category = state.categories.get(state.activeItem?.categoryId);
             //@ts-ignore
             const resourceKeys = new Array(category.Resources.keys());
@@ -76,10 +85,13 @@ const store = createStore({
             };
             category?.Resources.set(lastResourceKey, res);
 
-            state.activeItem = Menu.addMenuElementFromResource(res, lastResourceKey, category?.id);
+            state.activeItem = Menu.addMenuElementFromResource(res, lastResourceKey, state.activeItem?.categoryId);
         },
         saveCurrentResource(state: State, resource: Resource) {
-            state.categories.get(state.activeItem?.categoryId).Resources.set(state.activeItem?.resourceId, resource);
+            if (state!.activeItem?.categoryId === undefined && state!.activeItem?.resourceId === undefined) {
+                return;
+            }
+            state.categories.get(state.activeItem?.categoryId)?.Resources.set(state.activeItem?.resourceId, resource);
         },
         setResources(state: State, data: SetResourceData) {
             data.categories.forEach(c => {
@@ -101,20 +113,20 @@ const store = createStore({
             state.activeItem = item;
         },
         setCurrentResourceData(state: State, data: string) {
-            state.categories!.get(state.activeItem?.categoryId)!.Resources.get(state.activeItem?.resourceId)!.data = data;
+            getActiveResource(state)!.data = data;
         },
         setCurrentResourceName(state: State, name: string) {
-            state.categories!.get(state.activeItem?.categoryId)!.Resources.get(state.activeItem?.resourceId)!.name = name;
+            getActiveResource(state)!.name = name;
         },
         setIconPickerVisible(state: State, visible: boolean) {
             state.isIconPickerVisible = visible;
         },
         setResourceIcon(state: State, resourceIcon: ResourceIcon) {
             console.log('setResourceIcon', resourceIcon);
-            const resource = { ...state.categories!.get(state.activeItem?.categoryId)!.Resources.get(state.activeItem?.resourceId)};
-            if (resource.icon) {
+            const resource = { ...getActiveResource(state)};
+            if (resource.icon && state!.activeItem?.categoryId !== undefined && state!.activeItem?.resourceId !== undefined) {
                 resource.icon = resourceIcon.iconClass;
-                state.categories!.get(state.activeItem?.categoryId)!.Resources.set(state.activeItem?.resourceId, resource as Resource);
+                state.categories!.get(state!.activeItem?.categoryId)!.Resources.set(state!.activeItem?.resourceId, resource as Resource);
             }
         },
         setIconPickerIndex(state: State, data: ResourceIndexes) {
@@ -164,7 +176,7 @@ const store = createStore({
         },
         async setResourceIcon({commit, dispatch, state} : CommitStateDispatchFunction<State, Dispatch> , resourceIcon : ResourceIcon) {
             commit('setResourceIcon', resourceIcon);
-            await dispatch('saveCurrentResource', state.categories?.get(state.activeItem?.categoryId)?.Resources.get(state.activeItem?.idx));
+            await dispatch('saveCurrentResource', getActiveResource(state));
         },
         setIconPickerIndex({commit} : CommitFunction, data: ResourceIndexes) {
             commit('setIconPickerIndex', data);
@@ -196,18 +208,18 @@ const store = createStore({
             return state.activeItem?.resourceId;
         },
         getActiveResourceData(state: State): string {
-            return state.categories?.get(state?.activeItem?.categoryId)?.Resources?.get(state?.activeItem?.resourceId)?.data ?? '';
+            return getActiveResource(state)?.data ?? '';
         },
         getActiveResourceName(state: State): string {
             if (state.activeItem?.type === MenuType.CATEGORY) {
                 return state.categories?.get(state?.activeItem?.categoryId)?.name ?? '';
             } else {
-                return state.categories?.get(state?.activeItem?.categoryId)?.Resources?.get(state?.activeItem?.resourceId)?.name ?? '';
+                return getActiveResource(state)?.name ?? '';
             }
 
         },
         getActiveResource(state: State): Resource|undefined {
-            return state.categories?.get(state?.activeItem?.categoryId)?.Resources?.get(state?.activeItem?.resourceId);
+            return getActiveResource(state);
         },
         //@ts-ignore
         getEncryptionKey(state: State): string
@@ -221,7 +233,7 @@ const store = createStore({
         },
         getActiveResourceIcon(state: State): string
         {
-            return state.categories?.get(state?.activeItem?.categoryId)?.Resources?.get(state?.activeItem?.resourceId)?.icon || '';
+            return getActiveResource(state)?.icon || '';
         },
         getIconPickerIndex(state: State): ResourceIndexes|undefined
         {

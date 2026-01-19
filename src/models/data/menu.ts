@@ -114,6 +114,9 @@ export default class Menu {
     }
 
     static addCategory(cat: Category, categoryId: number): MenuElement {
+        if (!iconMap.has(cat.icon)) {
+            iconMap.set(cat.icon, faIcon({ icon: `fa-solid ${cat.icon}` }));
+        }
         const result = <MenuElement>{
             resourceId: -1,
             title: cat.name,

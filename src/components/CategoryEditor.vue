@@ -7,7 +7,10 @@ export default class CategoryEditor extends Vue {
   minHeight: number = 640;
 
   onBtnSaveClick() {
-    this.$store.dispatch('saveCurrentResource', this.$store.getters.getActiveResource);
+    const categoryId = this.$store.state.activeItem?.categoryId;
+    if (categoryId !== undefined) {
+      this.$store.dispatch('saveCurrentCategory', this.$store.getters.getResources.get(categoryId));
+    }
   }
 
   mounted() {
@@ -19,7 +22,7 @@ export default class CategoryEditor extends Vue {
   }
 
   set name(n: string) {
-    this.$store.dispatch('setCurrentResourceName', n);
+    this.$store.dispatch('setCurrentCategoryName', n);
   }
 }
 </script>

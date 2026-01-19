@@ -135,13 +135,19 @@ const store = createStore({
             getActiveResource(state)!.data = data;
         },
         setCurrentResourceName(state: State, name: string) {
+            const resource = getActiveResource(state);
+            if (resource) {
+                resource.name = name;
+            }
+        },
+        setCurrentCategoryName(state: State, name: string) {
             if (state!.activeItem?.categoryId === undefined) {
                 return;
             }
-            state.categories!.get(state!.activeItem?.categoryId)!.name = name;
-        },
-        setCurrentCategoryName(state: State, name: string) {
-            getActiveResource(state)!.name = name;
+            const category = state.categories!.get(state!.activeItem?.categoryId);
+            if (category) {
+                category.name = name;
+            }
         },
         setIconPickerVisible(state: State, visible: boolean) {
             state.isIconPickerVisible = visible;

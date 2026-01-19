@@ -67,8 +67,15 @@ const store = createStore({
         setUser(state: State, user: User) {
             state.user = user;
         },
-        addCategory(state: State) {
-          //todo: implement
+        addCategory(state: State, category: Category) {
+            state.categories.set(category.id, category);
+            state.activeItem = {
+                categoryId: category.id,
+                resourceId: -1,
+                title: category.name,
+                icon: category.icon,
+                type: MenuType.CATEGORY
+            };
         },
         addResource(state: State) {
             if (state!.activeItem?.categoryId === undefined) {
@@ -117,6 +124,9 @@ const store = createStore({
             //@ts-ignore
             state.categories.get(data.categoryId).Resources.delete(data.resourceId);
         },
+        deleteCategory(state: State, categoryId: number) {
+            state.categories.delete(categoryId);
+        },
         setActiveResource(state: State, item: MenuElement) {
             console.log('setActiveResource', item);
             state.activeItem = item;
@@ -144,7 +154,12 @@ const store = createStore({
         },
         setCategoryIcon(state: State, item: MenuElement) {
             console.log('setCategoryIcon', item);
-            const category = { ...state.categories!.get(item.categoryId)};
+            const existingCategory = state.categories!.get(item.categoryId);
+            if (!existingCategory) {
+                console.error('Category not found:', item.categoryId);
+                return;
+            }
+            const category = { ...existingCategory };
             category.icon = item.icon;
             state.categories!.set(item.categoryId, category as Category);
         },
@@ -159,8 +174,20 @@ const store = createStore({
         setResources({commit}: CommitFunction, data: SetResourceData) {
             commit('setResources', data);
         },
-        addCategory({commit}: CommitFunction) {
-            commit('addCategory');
+        async addCategory({commit}: CommitFunction) {
+            const client = new ApiClient();
+            const newCategory: Category = {
+                id: 0,
+                name: 'New Category',
+                icon: 'fa-code',
+                userId: 0,
+                Resources: new Map<number, Resource>()
+            };
+            const res = await client.category(newCategory);
+            if (res.id > 0) {
+                newCategory.id = res.id;
+                commit('addCategory', newCategory);
+            }
         },
         addResource({commit}: CommitFunction) {
             commit('addResource');
@@ -180,10 +207,14 @@ const store = createStore({
                 commit('saveCurrentResource', res);
             }
         },
-        async saveCurrentCategory({commit, getters}: CommitGettersFunction<Getters>, category: Category) {
-            //todo: implement
-            if (false) {
-                commit('saveCurrentResource', false);
+        async saveCurrentCategory({commit, state}: CommitStateFunction<State>, category: Category) {
+            const client = new ApiClient();
+            const res = await client.category(category);
+            if (res.id === category.id) {
+                const oldCategory = state.categories.get(category.id);
+                if (oldCategory) {
+                    state.categories.set(category.id, {...oldCategory, name: res.name, icon: res.icon});
+                }
             }
         },
         setCurrentResourceData({commit} : CommitFunction, data: string) {
@@ -207,8 +238,13 @@ const store = createStore({
             await dispatch('saveCurrentResource', state.categories?.get(item.categoryId)?.Resources.get(item.resourceId));
         },
         async setCategoryIcon({commit, dispatch, state} : CommitStateDispatchFunction<State, Dispatch> , item : MenuElement) {
+            console.log('setCategoryIcon action', 'categoryId:', item.categoryId, 'categories keys:', Array.from(state.categories.keys()));
             commit('setCategoryIcon', item);
-            await dispatch('saveCurrentCategory', state.categories?.get(item.categoryId));
+            const category = state.categories?.get(item.categoryId);
+            console.log('setCategoryIcon category to save:', category);
+            if (category) {
+                await dispatch('saveCurrentCategory', category);
+            }
         },
         setIconPickerIndex({commit, state} : CommitStateFunction<State>, data: MenuElement) {
             const item = state.categories?.get(data.categoryId)?.Resources.get(data.resourceId);
@@ -219,12 +255,24 @@ const store = createStore({
             if (resource === undefined || resource.id <= 0) {
                 return;
             }
-                        
+
             const client = new ApiClient();
             const isDeleted = await client.deleteResource(resource);
             if (isDeleted) {
                 commit('deleteResource', data);
-            }            
+            }
+        },
+        async deleteCategory({commit, state} : CommitStateFunction<State>, categoryId: number) {
+            const category = state.categories?.get(categoryId);
+            if (category === undefined || category.id <= 0) {
+                return;
+            }
+
+            const client = new ApiClient();
+            const isDeleted = await client.deleteCategory(category);
+            if (isDeleted) {
+                commit('deleteCategory', categoryId);
+            }
         }
     },
     getters: {

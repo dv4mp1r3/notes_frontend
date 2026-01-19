@@ -1,5 +1,5 @@
 import axios from "axios";
-import {Resource} from "./data/resource.ts";
+import {Category, Resource} from "./data/resource.ts";
 
 const host = import.meta.env.VITE_BACKEND_URL;
 
@@ -33,6 +33,24 @@ export default class ApiClient {
         );
         console.log(endpoint, data, status);
         return data;
+    }
+
+    public async category(cat: Category): Promise<Category> {
+        const endpoint = ApiClient.getMethod('category', cat.id);
+        const { data, status } = await axios.post(
+            endpoint,
+            { id: cat.id, name: cat.name, icon: cat.icon, userId: cat.userId }
+        );
+        console.log(endpoint, data, status);
+        return data;
+    }
+
+    public async deleteCategory(cat: Category): Promise<boolean> {
+        if (cat.id > 0) {
+            const { status } = await axios.delete(ApiClient.getMethod('category', cat.id));
+            return status === 200;
+        }
+        return false;
     }
 
     public async deleteResource(res: Resource): Promise<boolean> {

@@ -58,11 +58,15 @@ export default class App extends Vue {
       return;
     }
     if (this.isIconDeleteCkick(event)) {
-      this.$store.dispatch(item.type as MenuType === MenuType.CATEGORY ? 'deleteCategory' : 'deleteResource', item.resourceId);
+      if (item.type === MenuType.CATEGORY) {
+        this.$store.dispatch('deleteCategory', item.categoryId);
+      } else {
+        this.$store.dispatch('deleteResource', { categoryId: item.categoryId, resourceId: item.resourceId });
+      }
       return;
     }
     this.$store.dispatch('setIconPickerVisible', false);
-    if (item.resourceId === MENU_INDEX_NEW_ITEM) {
+    if (item.resourceId === MENU_INDEX_NEW_ITEM && item.categoryId === undefined) {
       this.showEcryptionKey = false;
       this.$store.dispatch(item.type as MenuType === MenuType.CATEGORY ? 'addCategory' : 'addResource');
       setTimeout(() => document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);

@@ -11,7 +11,6 @@ import {Component, Vue} from 'vue-facing-decorator'
 import axios from 'axios'
 import Menu, {MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement, MenuType} from './models/data/menu'
 import {Category} from "./models/data/resource.ts";
-import {ResourceIndexes} from "./store.ts";
 
 axios.defaults.withCredentials = true;
 
@@ -71,7 +70,6 @@ export default class App extends Vue {
     if (isNewItemClick) {
       this.showEcryptionKey = false;
       this.$store.dispatch(item.type === MenuType.CATEGORY ? 'addCategory' : 'addResource');
-      setTimeout(() => document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
       return;
     }
     document.querySelector('.link-active')?.classList.remove(LINK_ACTIVE_CLASS);
@@ -97,6 +95,15 @@ export default class App extends Vue {
   isIconClick(event: PointerEvent): boolean {
     //@ts-ignore
     return event.srcElement.className === 'vsm--icon' || event.srcElement.className instanceof SVGAnimatedString;
+  }
+
+  mounted() {
+    this.onResize();
+    window.addEventListener('resize', this.onResize);
+  }
+
+  beforeUnmount() {
+    window.removeEventListener('resize', this.onResize);
   }
 
   onResize() {

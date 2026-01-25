@@ -85,6 +85,10 @@ const store = createStore({
             if (!category) {
                 return;
             }
+            const resourceKeys = Array.from(category.Resources.keys());
+            const minKey = resourceKeys.length > 0 ? Math.min(...resourceKeys) : 0;
+            const tempId = minKey <= 0 ? minKey - 1 : -1;
+
             const res: Resource = {
                 id: 0,
                 categoryId: state.activeItem.categoryId,
@@ -92,9 +96,9 @@ const store = createStore({
                 data: '',
                 icon: 'fa-code'
             };
-            category.Resources.set(0, res);
+            category.Resources.set(tempId, res);
 
-            state.activeItem = Menu.addMenuElementFromResource(res, 0, state.activeItem.categoryId);
+            state.activeItem = Menu.addMenuElementFromResource(res, tempId, state.activeItem.categoryId);
         },
         saveCurrentResource(state: State, { oldResourceId, resource }: { oldResourceId: number, resource: Resource }) {
             if (state!.activeItem?.categoryId === undefined) {
@@ -215,13 +219,15 @@ const store = createStore({
                 commit('setActiveResource', item);
             }
         },
-        async saveCurrentResource({commit, getters}: CommitGettersFunction<Getters>, resource: Resource) {
+        async saveCurrentResource({commit, getters, state}: CommitGettersFunction<Getters> & { state: State }, resource: Resource) {
             const client = new ApiClient();
             const encrDataResource = {...resource};
             encrDataResource.data = AES.encrypt(resource.data, getters.getEncryptionKey).toString();
             const res = await client.resource(encrDataResource);
             if (res.id > 0) {
-                commit('saveCurrentResource', { oldResourceId: resource.id, resource: res });
+                const savedResource = {...resource, id: res.id};
+                const oldMapKey = state.activeItem?.resourceId ?? resource.id;
+                commit('saveCurrentResource', { oldResourceId: oldMapKey, resource: savedResource });
             }
         },
         async saveCurrentCategory({commit, state}: CommitStateFunction<State>, category: Category) {
@@ -264,7 +270,6 @@ const store = createStore({
             }
         },
         setIconPickerIndex({commit, state} : CommitStateFunction<State>, data: MenuElement) {
-            const item = state.categories?.get(data.categoryId)?.Resources.get(data.resourceId);
             commit('setIconPickerIndex', data);
         },
         async deleteResource({commit, state} : CommitStateFunction<State>, data: ResourceIndexes) {

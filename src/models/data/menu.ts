@@ -51,14 +51,16 @@ export enum MenuType {
 }
 
 export type MenuElement = {
+    id?: string,
     data?: string,
     title: string,
     icon: any,
     resourceId: number,
     type: MenuType,
     categoryId: number,
-    badge?: Badge
+    badge?: Badge,
     child?: Array<MenuElement>,
+    isOpen?: boolean,
 };
 
 //todo: define default icon
@@ -80,6 +82,7 @@ export default class Menu {
                 hiddenOnCollapse: true,
             },
             {
+                id: 'encryption-key',
                 data: null,
                 title: 'Encryption key',
                 icon: iconMap.get('fa-key'),
@@ -87,6 +90,7 @@ export default class Menu {
                 class: 'control-item'
             },
             {
+                id: 'new-category',
                 data: null,
                 title: 'New Item',
                 icon: iconMap.get('fa-plus'),
@@ -102,6 +106,7 @@ export default class Menu {
             iconMap.set(res.icon, faIcon({ icon: `fa-solid ${res.icon}` }));
         }
         return <MenuElement>{
+            id: `res-${categoryId}-${idx}`,
             data: res.data,
             title: res.name,
             icon: iconMap.get(res.icon),
@@ -119,11 +124,14 @@ export default class Menu {
             iconMap.set(cat.icon, faIcon({ icon: `fa-solid ${cat.icon}` }));
         }
         const result = <MenuElement>{
+            id: `cat-${categoryId}`,
             resourceId: -1,
             title: cat.name,
             icon: iconMap.get(cat.icon),
+            isOpen: true,
             child: [
                 <MenuElement>{
+                    id: `add-res-${categoryId}`,
                     title: 'Add Resource',
                     icon: iconMap.get('fa-plus'),
                     resourceId: MENU_INDEX_NEW_ITEM,

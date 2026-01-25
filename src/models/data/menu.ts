@@ -83,14 +83,15 @@ export default class Menu {
                 data: null,
                 title: 'Encryption key',
                 icon: iconMap.get('fa-key'),
-                idx: MENU_INDEX_ENCRYPTION_KEY,
+                resourceId: MENU_INDEX_ENCRYPTION_KEY,
                 class: 'control-item'
             },
             {
                 data: null,
                 title: 'New Item',
                 icon: iconMap.get('fa-plus'),
-                idx: MENU_INDEX_NEW_ITEM,
+                resourceId: MENU_INDEX_NEW_ITEM,
+                type: MenuType.CATEGORY,
                 class: 'control-item control-item-last'
             }
         ]

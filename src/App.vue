@@ -66,9 +66,11 @@ export default class App extends Vue {
       return;
     }
     this.$store.dispatch('setIconPickerVisible', false);
-    if (item.resourceId === MENU_INDEX_NEW_ITEM && item.categoryId === undefined) {
+    const isNewItemClick = item.resourceId === MENU_INDEX_NEW_ITEM &&
+      (item.categoryId === undefined || item.type === MenuType.RESOURCE);
+    if (isNewItemClick) {
       this.showEcryptionKey = false;
-      this.$store.dispatch(item.type as MenuType === MenuType.CATEGORY ? 'addCategory' : 'addResource');
+      this.$store.dispatch(item.type === MenuType.CATEGORY ? 'addCategory' : 'addResource');
       setTimeout(() => document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
       return;
     }

@@ -122,7 +122,15 @@ export default class Menu {
             resourceId: -1,
             title: cat.name,
             icon: iconMap.get(cat.icon),
-            child: [],
+            child: [
+                <MenuElement>{
+                    title: 'Add Resource',
+                    icon: iconMap.get('fa-plus'),
+                    resourceId: MENU_INDEX_NEW_ITEM,
+                    categoryId: categoryId,
+                    type: MenuType.RESOURCE,
+                }
+            ],
             badge: {
                 text: '❌',
             },

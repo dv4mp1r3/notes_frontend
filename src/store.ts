@@ -82,24 +82,35 @@ const store = createStore({
                 return;
             }
             const category = state.categories.get(state.activeItem?.categoryId);
-            //@ts-ignore
-            const resourceKeys = new Array(category.Resources.keys());
-            const lastResourceKey = Number.parseInt(resourceKeys.sort()[resourceKeys.length - 1].toString()) + 1;
+            if (!category) {
+                return;
+            }
             const res: Resource = {
-                id: lastResourceKey,
-                name: `Resource №${lastResourceKey}`,
+                id: 0,
+                categoryId: state.activeItem.categoryId,
+                name: 'New Resource',
                 data: '',
                 icon: 'fa-code'
             };
-            category?.Resources.set(lastResourceKey, res);
+            category.Resources.set(0, res);
 
-            state.activeItem = Menu.addMenuElementFromResource(res, lastResourceKey, state.activeItem?.categoryId);
+            state.activeItem = Menu.addMenuElementFromResource(res, 0, state.activeItem.categoryId);
         },
-        saveCurrentResource(state: State, resource: Resource) {
-            if (state!.activeItem?.categoryId === undefined && state!.activeItem?.resourceId === undefined) {
+        saveCurrentResource(state: State, { oldResourceId, resource }: { oldResourceId: number, resource: Resource }) {
+            if (state!.activeItem?.categoryId === undefined) {
                 return;
             }
-            state.categories.get(state.activeItem?.categoryId)?.Resources.set(state.activeItem?.resourceId, resource);
+            const category = state.categories.get(state.activeItem?.categoryId);
+            if (!category) {
+                return;
+            }
+            if (oldResourceId !== resource.id) {
+                category.Resources.delete(oldResourceId);
+            }
+            category.Resources.set(resource.id, resource);
+            if (state.activeItem) {
+                state.activeItem.resourceId = resource.id;
+            }
         },
         saveCurrentCategory(state: State, category: Category) {
             if (state!.activeItem?.categoryId === undefined) {
@@ -209,8 +220,8 @@ const store = createStore({
             const encrDataResource = {...resource};
             encrDataResource.data = AES.encrypt(resource.data, getters.getEncryptionKey).toString();
             const res = await client.resource(encrDataResource);
-            if (res.id === resource.id) {
-                commit('saveCurrentResource', res);
+            if (res.id > 0) {
+                commit('saveCurrentResource', { oldResourceId: resource.id, resource: res });
             }
         },
         async saveCurrentCategory({commit, state}: CommitStateFunction<State>, category: Category) {

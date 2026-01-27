@@ -64,11 +64,17 @@ export default class App extends Vue {
       return;
     }
     this.$store.dispatch('setIconPickerVisible', false);
-    const isNewItemClick = item.resourceId === MENU_INDEX_NEW_ITEM &&
-      (item.categoryId === undefined || item.type === MenuType.RESOURCE);
-    if (isNewItemClick) {
+    // Проверяем по id элемента, а не по resourceId (т.к. tempId для новых ресурсов тоже -1)
+    const isAddResourceClick = item.id?.startsWith('add-res-');
+    const isAddCategoryClick = item.id === 'new-category';
+    if (isAddResourceClick) {
       this.showEcryptionKey = false;
-      this.$store.dispatch(item.type === MenuType.CATEGORY ? 'addCategory' : 'addResource');
+      this.$store.dispatch('addResource');
+      return;
+    }
+    if (isAddCategoryClick) {
+      this.showEcryptionKey = false;
+      this.$store.dispatch('addCategory');
       return;
     }
     document.querySelector('.link-active')?.classList.remove(LINK_ACTIVE_CLASS);

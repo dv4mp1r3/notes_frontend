@@ -56,13 +56,13 @@ export default class IconPicker extends Vue {
   ];
 
   selectIcon(icon: Icon) {
-    console.log('selectIcon', icon.class);
     const item = this.$store.getters.getIconPickerIndex as MenuElement;
+    console.log('selectIcon', icon.class, 'resourceId:', item?.resourceId, 'categoryId:', item?.categoryId);
     if (item === undefined) {
       return;
     }
-    item.icon = icon.class;
-    this.$store.dispatch(item.type === MenuType.RESOURCE ? 'setResourceIcon' : 'setCategoryIcon', item);
+    const itemCopy = {...item, icon: icon.class};
+    this.$store.dispatch(item.type === MenuType.RESOURCE ? 'setResourceIcon' : 'setCategoryIcon', itemCopy);
     this.$emit('select', icon);
   }
 }

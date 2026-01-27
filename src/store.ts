@@ -5,7 +5,6 @@ import {AES, enc} from 'crypto-js';
 import {Category, Resource, SetResourceCategory} from "./models/data/resource.ts";
 import {User} from "./models/data/user.ts";
 import Menu, {MenuElement, MenuType} from "./models/data/menu.ts";
-import {state} from "vue-tsc/out/shared";
 
 export interface CommitFunction {
     commit: Commit;
@@ -168,10 +167,21 @@ const store = createStore({
             state.isIconPickerVisible = visible;
         },
         setResourceIcon(state: State, item: MenuElement) {
-            console.log('setResourceIcon', item);
-            const resource = { ...state.categories!.get(item.categoryId)!.Resources.get(item.resourceId)};
+            console.log('setResourceIcon mutation - resourceId:', item.resourceId, 'categoryId:', item.categoryId, 'icon:', item.icon);
+            const category = state.categories!.get(item.categoryId);
+            if (!category) {
+                console.error('Category not found:', item.categoryId);
+                return;
+            }
+            const existingResource = category.Resources.get(item.resourceId);
+            if (!existingResource) {
+                console.error('Resource not found:', item.resourceId, 'available keys:', Array.from(category.Resources.keys()));
+                return;
+            }
+            const resource = { ...existingResource };
             resource.icon = item.icon;
-            state.categories!.get(item.categoryId)!.Resources.set(item.resourceId, resource as Resource);
+            category.Resources.set(item.resourceId, resource as Resource);
+            state.categories = new Map(state.categories);
         },
         setCategoryIcon(state: State, item: MenuElement) {
             console.log('setCategoryIcon', item);
@@ -183,6 +193,7 @@ const store = createStore({
             const category = { ...existingCategory };
             category.icon = item.icon;
             state.categories!.set(item.categoryId, category as Category);
+            state.categories = new Map(state.categories);
         },
         setIconPickerIndex(state: State, data: MenuElement) {
             state.iconPickerItem = data;

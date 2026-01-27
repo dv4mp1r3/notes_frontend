@@ -43,17 +43,16 @@ export default class App extends Vue {
   }
 
   onItemClick(event: PointerEvent, item: MenuElement) {
-    console.log('onItemClick called', event, item );
+    console.log('onItemClick called', 'resourceId:', item.resourceId, 'categoryId:', item.categoryId, 'id:', item.id);
 
     this.$store.dispatch('setActiveResource',  item);
     //@ts-ignore
     if (this.isIconClick(event)) {
-      console.log('onItemClick target->svg', event.x, event.y);
+      console.log('onItemClick icon click - resourceId:', item.resourceId, 'categoryId:', item.categoryId);
       this.$store.dispatch('setIconPickerVisible', true);
       this.modalX = event.x;
       this.modalY = event.y;
-      console.log('onItemClick', item);
-      this.$store.dispatch('setIconPickerIndex', item);
+      this.$store.dispatch('setIconPickerIndex', {...item});  // копируем item чтобы избежать мутаций
       return;
     }
     if (this.isIconDeleteCkick(event)) {

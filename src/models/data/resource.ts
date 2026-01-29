@@ -1,5 +1,6 @@
 export type Resource = {
     id: number;
+    categoryId: number;
     name: string;
     data: string;
     icon: string;

@@ -34,9 +34,9 @@ library.add(
     faKey
 )
 
-const faIcon = (props: any) => {
+function createIconElement(iconClass: string): any {
     return {
-        element: h('div', [h(FontAwesomeIcon, { size: 'lg', ...props })]),
+        element: h('div', [h(FontAwesomeIcon, { size: 'lg', icon: `fa-solid ${iconClass}` })]),
     }
 }
 
@@ -45,24 +45,28 @@ export type Badge = {
     class?: string
 }
 
+export enum MenuType {
+    CATEGORY,
+    RESOURCE,
+}
+
 export type MenuElement = {
+    id?: string,
     data?: string,
     title: string,
     icon: any,
-    idx: number,
-    categoryIdx?: number,
-    badge?: Badge
+    resourceId: number,
+    type: MenuType,
+    categoryId: number,
+    badge?: Badge,
     child?: Array<MenuElement>,
+    isOpen?: boolean,
 };
+
+//todo: define default icon
 
 export const MENU_INDEX_ENCRYPTION_KEY = -2;
 export const MENU_INDEX_NEW_ITEM = -1;
-
-
-const iconMap = new Map<string, any>();
-iconMap.set('fa-code', faIcon({ icon: 'fa-solid fa-code' }));
-iconMap.set('fa-plus', faIcon({ icon: 'fa-solid fa-plus' }));
-iconMap.set('fa-key', faIcon({ icon: 'fa-solid fa-key' }));
 
 export default class Menu {
 
@@ -72,49 +76,74 @@ export default class Menu {
                 hiddenOnCollapse: true,
             },
             {
+                id: 'encryption-key',
                 data: null,
                 title: 'Encryption key',
-                icon: iconMap.get('fa-key'),
-                idx: MENU_INDEX_ENCRYPTION_KEY,
+                icon: createIconElement('fa-key'),
+                resourceId: MENU_INDEX_ENCRYPTION_KEY,
                 class: 'control-item'
             },
             {
+                id: 'new-category',
                 data: null,
                 title: 'New Item',
-                icon: iconMap.get('fa-plus'),
-                idx: MENU_INDEX_NEW_ITEM,
+                icon: createIconElement('fa-plus'),
+                resourceId: MENU_INDEX_NEW_ITEM,
+                type: MenuType.CATEGORY,
                 class: 'control-item control-item-last'
             }
         ]
     }
 
-    static addMenuElementFromResource(res: Resource, idx: number, categoryIdx: number): MenuElement {
-        if (!iconMap.has(res.icon)) {
-            iconMap.set(res.icon, faIcon({ icon: `fa-solid ${res.icon}` }));
-        }
-        return {
+    static addMenuElementFromResource(res: Resource, idx: number, categoryId: number): MenuElement {
+        return <MenuElement>{
+            id: `res-${categoryId}-${idx}`,
             data: res.data,
             title: res.name,
-            icon: iconMap.get(res.icon),
-            idx: idx,
-            categoryIdx: categoryIdx,
+            icon: createIconElement(res.icon),
+            resourceId: idx,
+            categoryId: categoryId,
             badge: {
                 text: '❌',
-            }
+            },
+            type: MenuType.RESOURCE
         }
     }
 
-    static addCategory(cat: Category, idx: number): MenuElement {
+    static addCategory(cat: Category, categoryId: number): MenuElement {
         const result = <MenuElement>{
-            idx: idx,
+            id: `cat-${categoryId}`,
+            resourceId: -1,
             title: cat.name,
-            icon: iconMap.get(cat.icon),
-            child: [],
+            icon: createIconElement(cat.icon),
+            isOpen: true,
+            child: [
+                <MenuElement>{
+                    id: `add-res-${categoryId}`,
+                    title: 'Add Resource',
+                    icon: createIconElement('fa-plus'),
+                    resourceId: MENU_INDEX_NEW_ITEM,
+                    categoryId: categoryId,
+                    type: MenuType.RESOURCE,
+                }
+            ],
+            badge: {
+                text: '❌',
+            },
+            type: MenuType.CATEGORY,
+            categoryId: categoryId,
         };
         const self = this;
-        cat.Resources.forEach((value) =>  {
-            result.child?.push(self.addMenuElementFromResource(value, value.id, idx));
+        const sortedResources = Array.from(cat.Resources.entries()).sort((a, b) => a[0] - b[0]);
+        sortedResources.forEach(([key, value]) =>  {
+            result.child?.push(self.addMenuElementFromResource(value, key, categoryId));
         });
+        return result;
+    }
+
+    static setIconByClassName(item: MenuElement, className: string): MenuElement {
+        const result = {...item};
+        result.icon = createIconElement(className);
         return result;
     }
 }

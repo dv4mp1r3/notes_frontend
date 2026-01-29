@@ -3,20 +3,20 @@ import SidebarMenuLink from './components/SidebarMenuLink.vue'
 import LoginForm from './components/LoginForm.vue'
 import Modal from './components/Modal.vue'
 import IconPicker from './components/IconPicker.vue'
-import Editor from './components/Editor.vue'
+import ResourceEditor from './components/ResourceEditor.vue'
+import CategoryEditor  from './components/CategoryEditor.vue'
 import EncryptionKeyEditor from './components/EncryptionKeyEditor.vue'
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
-import { Component, Vue } from 'vue-facing-decorator'
+import {Component, Vue} from 'vue-facing-decorator'
 import axios from 'axios'
-import Menu, { MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement } from './models/data/menu'
+import Menu, {MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement, MenuType} from './models/data/menu'
 import {Category} from "./models/data/resource.ts";
-import {ResourceIndexes} from "./store.ts";
 
 axios.defaults.withCredentials = true;
 
 const LINK_ACTIVE_CLASS = 'link-active';
 
-@Component({ components: { SidebarMenuLink, Editor, LoginForm, EncryptionKeyEditor, Modal, IconPicker } })
+@Component({ components: {CategoryEditor, SidebarMenuLink, ResourceEditor, LoginForm, EncryptionKeyEditor, Modal, IconPicker } })
 export default class App extends Vue {
   collapsed = false;
   isOnMobile = false;
@@ -34,31 +34,52 @@ export default class App extends Vue {
     return this.$store.getters.isIconPickerVisible;
   }
 
+  get showResourceEditor(): boolean {
+    return !this.showEcryptionKey && this.$store.getters.isActiveElementResource;
+  }
+
+  get showCategoryEditor(): boolean {
+    return !this.showEcryptionKey && !this.$store.getters.isActiveElementResource;
+  }
+
   onItemClick(event: PointerEvent, item: MenuElement) {
-    console.log('onItemClick called', event, item );
+    console.log('onItemClick called', 'resourceId:', item.resourceId, 'categoryId:', item.categoryId, 'id:', item.id);
+
+    this.$store.dispatch('setActiveResource',  item);
     //@ts-ignore
     if (this.isIconClick(event)) {
-      console.log('onItemClick target->svg', event.x, event.y);
+      console.log('onItemClick icon click - resourceId:', item.resourceId, 'categoryId:', item.categoryId);
       this.$store.dispatch('setIconPickerVisible', true);
       this.modalX = event.x;
       this.modalY = event.y;
-      this.$store.dispatch('setIconPickerIndex', <ResourceIndexes>{resourceId: item.idx, categoryId: item.categoryIdx});
+      this.$store.dispatch('setIconPickerIndex', {...item});  // копируем item чтобы избежать мутаций
       return;
     }
     if (this.isIconDeleteCkick(event)) {
-      this.$store.dispatch('deleteResource', item.idx);
+      if (item.type === MenuType.CATEGORY) {
+        this.$store.dispatch('deleteCategory', item.categoryId);
+      } else {
+        this.$store.dispatch('deleteResource', { categoryId: item.categoryId, resourceId: item.resourceId });
+      }
       return;
     }
     this.$store.dispatch('setIconPickerVisible', false);
-    if (item.idx === MENU_INDEX_NEW_ITEM) {
+    // Проверяем по id элемента, а не по resourceId (т.к. tempId для новых ресурсов тоже -1)
+    const isAddResourceClick = item.id?.startsWith('add-res-');
+    const isAddCategoryClick = item.id === 'new-category';
+    if (isAddResourceClick) {
       this.showEcryptionKey = false;
       this.$store.dispatch('addResource');
-      setTimeout(() => document.querySelector('ul.vsm--menu li.vsm--item:last-child')?.classList.add(LINK_ACTIVE_CLASS), 100);
+      return;
+    }
+    if (isAddCategoryClick) {
+      this.showEcryptionKey = false;
+      this.$store.dispatch('addCategory');
       return;
     }
     document.querySelector('.link-active')?.classList.remove(LINK_ACTIVE_CLASS);
-    if (item.idx === MENU_INDEX_ENCRYPTION_KEY) {
-      console.log('onItemClick', item.idx);
+    if (item.resourceId === MENU_INDEX_ENCRYPTION_KEY) {
+      console.log('onItemClick', item.resourceId);
       this.showEcryptionKey = true;
       return;
     }
@@ -68,7 +89,7 @@ export default class App extends Vue {
     }
     this.showEcryptionKey = false;
     console.log('onItemClick', item);
-    this.$store.dispatch('setActiveResource',  <ResourceIndexes>{categoryId: item.categoryIdx, resourceId: item.idx});
+
   }
 
   isIconDeleteCkick(event: PointerEvent): boolean {
@@ -79,6 +100,15 @@ export default class App extends Vue {
   isIconClick(event: PointerEvent): boolean {
     //@ts-ignore
     return event.srcElement.className === 'vsm--icon' || event.srcElement.className instanceof SVGAnimatedString;
+  }
+
+  mounted() {
+    this.onResize();
+    window.addEventListener('resize', this.onResize);
+  }
+
+  beforeUnmount() {
+    window.removeEventListener('resize', this.onResize);
   }
 
   onResize() {
@@ -117,13 +147,14 @@ export default class App extends Vue {
 <template>
     <div v-if="isAuthorized">
         <sidebar-menu v-model:collapsed="collapsed" :menu="menu" :link-component-name="'sidebar-menu-link'"
-            :show-one-child="true" @update:collapsed="onToggleCollapse" @item-click="onItemClick"
+            :show-one-child="false" @update:collapsed="onToggleCollapse" @item-click="onItemClick"
             :style="[{ 'max-height': `${sidebarMaxHeight}px` }]" />
         <div v-if="isOnMobile && !collapsed" class="sidebar-overlay" @click="collapsed = true" />
         <div id="demo" :class="[{ collapsed: collapsed }, { onmobile: isOnMobile }]">
             <div class="demo">
                 <div class="container">
-                    <editor v-if="!showEcryptionKey" />
+                    <resource-editor v-if="showResourceEditor" />
+                    <category-editor v-if="showCategoryEditor" />
                     <encryption-key-editor v-if="showEcryptionKey" />
                 </div>
             </div>

@@ -1,21 +1,21 @@
 <script lang="ts">
 
-import { Component, Vue } from 'vue-facing-decorator';
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import {Component, Vue} from 'vue-facing-decorator';
+import {library} from '@fortawesome/fontawesome-svg-core'
+import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome'
 import {
-  faUserSecret,
-  faStar,
+  faBell,
+  faCloud,
+  faComments,
+  faEnvelope,
   faHeart,
   faMoon,
-  faSun,
-  faCloud,
   faSnowflake,
-  faBell,
-  faEnvelope,
-  faComments
+  faStar,
+  faSun,
+  faUserSecret
 } from '@fortawesome/free-solid-svg-icons'
-import {ResourceIcon, ResourceIndexes} from '../store';
+import {MenuElement, MenuType} from "../models/data/menu.ts";
 
 library.add(
     faUserSecret,
@@ -56,13 +56,13 @@ export default class IconPicker extends Vue {
   ];
 
   selectIcon(icon: Icon) {
-    console.log('selectIcon', icon.class);
-    const idx = this.$store.getters.getIconPickerIndex as ResourceIndexes;
-    if (idx === undefined) {
+    const item = this.$store.getters.getIconPickerIndex as MenuElement;
+    console.log('selectIcon', icon.class, 'resourceId:', item?.resourceId, 'categoryId:', item?.categoryId);
+    if (item === undefined) {
       return;
     }
-    const data: ResourceIcon = { iconClass: icon.class, resourceIndex: idx.resourceId, categoryIndex: idx.categoryId};
-    this.$store.dispatch('setResourceIcon', data);
+    const itemCopy = {...item, icon: icon.class};
+    this.$store.dispatch(item.type === MenuType.RESOURCE ? 'setResourceIcon' : 'setCategoryIcon', itemCopy);
     this.$emit('select', icon);
   }
 }

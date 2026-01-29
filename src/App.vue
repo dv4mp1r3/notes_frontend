@@ -9,7 +9,7 @@ import EncryptionKeyEditor from './components/EncryptionKeyEditor.vue'
 import 'vue-sidebar-menu/dist/vue-sidebar-menu.css'
 import {Component, Vue} from 'vue-facing-decorator'
 import axios from 'axios'
-import Menu, {MENU_INDEX_ENCRYPTION_KEY, MENU_INDEX_NEW_ITEM, MenuElement, MenuType} from './models/data/menu'
+import Menu, {MENU_INDEX_ENCRYPTION_KEY, MenuElement, MenuType} from './models/data/menu'
 import {Category} from "./models/data/resource.ts";
 
 axios.defaults.withCredentials = true;

@@ -241,6 +241,7 @@ const store = createStore({
                 commit('saveCurrentResource', { oldResourceId: oldMapKey, resource: savedResource });
             }
         },
+        //@ts-ignore
         async saveCurrentCategory({commit, state}: CommitStateFunction<State>, category: Category) {
             const client = new ApiClient();
             const res = await client.category(category);
@@ -280,7 +281,7 @@ const store = createStore({
                 await dispatch('saveCurrentCategory', category);
             }
         },
-        setIconPickerIndex({commit, state} : CommitStateFunction<State>, data: MenuElement) {
+        setIconPickerIndex({commit} : CommitFunction, data: MenuElement) {
             commit('setIconPickerIndex', data);
         },
         async deleteResource({commit, state} : CommitStateFunction<State>, data: ResourceIndexes) {

@@ -285,7 +285,12 @@ const store = createStore({
         },
         async deleteResource({commit, state} : CommitStateFunction<State>, data: ResourceIndexes) {
             const resource = state.categories?.get(data.categoryId)?.Resources.get(data.resourceId);
-            if (resource === undefined || resource.id <= 0) {
+            if (resource === undefined) {
+                return;
+            }
+
+            if (resource.id <= 0) {
+                commit('deleteResource', data);
                 return;
             }
 
